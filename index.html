@@ -608,7 +608,7 @@
     try{
       const ids=[...state.favorites];
       if(!ids.length){panel.innerHTML='<div class="empty" style="padding:30px">No favorite books yet.</div>';return}
-      const {data,error}=await supabaseClient.from("books").select("id,title,cover_path,created_at,is_public,author,description").in("id",ids);
+      const {data,error}=await supabaseClient.from("books").select("id,user_id,title,cover_path,created_at,is_public,author,description").in("id",ids);
       if(error)throw error;
       const books=data||[];
       panel.innerHTML="";
@@ -1333,61 +1333,43 @@
     if (!CONFIGURED) {
       $("syncStatus").innerHTML = '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff9f0a;margin-right:5px"></span>Setup required';
       $("empty").classList.remove("hidden");
-      $("empty").innerHTML = `
-        <h2>One-time setup required.</h2>
-        <p>Add your Supabase URL and anon key near the bottom of <strong>index.html</strong>, then reload the page.</p>
-      `;
+      $("empty").innerHTML = '<h2>One-time setup required.</h2><p>Add your Supabase URL and anon key near the bottom of <strong>index.html</strong>, then reload the page.</p>';
       return;
     }
-
-    // Load the public catalog independently of the private auth/session flow.
-    // A session problem must never prevent public books from appearing.
-    await loadPublicBooks();
-
-    const { data } = await supabaseClient.auth.getSession();
-    state.user = data.session?.user || null;
-    updateHeader();
-    render();
-    if (state.user) {
-      try {
-        await loadBooks();await loadFavorites();
-      } catch (error) {
-        console.error("Private book initialization failed:", error);
-        toast(error.message || "Could not load your account books.");
-      }
-    }
-
-      supabaseClient.auth.onAuthStateChange((event, session) => {
+    supabaseClient.auth.onAuthStateChange((event, session) => {
       state.user=session?.user||null;
+      state.profileName=state.user?.user_metadata?.display_name||"";
       updateHeader();
-      if (!state.user) { state.profileName=""; }
       setTimeout(async()=>{
         try{
-          // Refresh the public catalog after every auth transition as well.
           await loadPublicBooks($("publicSearch").value);
           if(state.user){
-            await loadBooks();
-            await loadPhotos();
+            await loadBooks(); await loadFavorites(); await loadPhotos(); renderBookLibrary(); renderFavoritesLibrary();
           }else{
-            state.books=[];state.sections=[];state.photos=[];state.currentBookId=null;state.currentSectionId=null;state.bookTitle="My Book";
-            renderBookSelector();renderSectionSelector();render();
-            closeLibrary();closeReader();closeViewer();state.publicBook=null;state.publicPhotos=[];state.publicSections=[];
+            state.books=[];state.sections=[];state.photos=[];state.currentBookId=null;state.currentSectionId=null;state.bookTitle="My Book";state.favorites=new Set();state.bookmarks=[];
+            renderBookSelector();renderSectionSelector();render();closeLibrary();closeFavorites();closeReader();closeViewer();closePhotoDetails();
+            state.publicBook=null;state.publicPhotos=[];state.publicSections=[];
           }
           if(event==="PASSWORD_RECOVERY"){
             const newPassword=prompt("Choose a new password (at least 6 characters):");
-            if(newPassword === null) return;
-            if(newPassword.length < 6){
-              toast("Password must be at least 6 characters.");
-              return;
-            }
+            if(newPassword===null)return;
+            if(newPassword.length<6){toast("Password must be at least 6 characters.");return}
             const {error}=await supabaseClient.auth.updateUser({password:newPassword});
-            toast(error ? error.message : "Password updated successfully.");
+            toast(error?error.message:"Password updated successfully.");
           }
-        }catch(error){console.error(error);toast(error.message||"Could not refresh your account.");}
+        }catch(error){console.error(error);toast(error.message||"Could not refresh your account.")}
       },0);
     });
-
-    if (state.user) await loadPhotos();
+    await loadPublicBooks();
+    const {data,error}=await supabaseClient.auth.getSession();
+    if(error)console.warn("Could not restore session:",error);
+    state.user=data.session?.user||null;
+    state.profileName=state.user?.user_metadata?.display_name||"";
+    updateHeader(); render();
+    if(state.user){
+      try{await loadBooks();await loadFavorites();await loadPhotos();renderFavoritesLibrary()}
+      catch(error){console.error("Private book initialization failed:",error);toast(error.message||"Could not load your account books.")}
+    }
   }
 
   $("chooseButton").addEventListener("click", () => {if(!state.user){openAuth("login");return;}$("fileInput").click();});
@@ -1519,7 +1501,10 @@
   dropZone.addEventListener("drop", async e => {
     if (state.user) await uploadFiles(e.dataTransfer.files);
   });
-$("profileButton").addEventListener("click",openProfile);
+$("favoritesButton").addEventListener("click",openFavorites);
+  $("favoritesClose").addEventListener("click",closeFavorites);
+  $("favoritesModal").addEventListener("click",e=>{if(e.target===$("favoritesModal"))closeFavorites});
+  $("profileButton").addEventListener("click",openProfile);
   $("profileCancel").addEventListener("click",()=>$("profileModal").classList.add("hidden"));
   $("profileLogout").addEventListener("click",async()=>{await logout();$("profileModal").classList.add("hidden")});
   $("profileSave").addEventListener("click",saveProfile);
