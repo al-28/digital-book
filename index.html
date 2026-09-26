@@ -325,20 +325,62 @@
 
   async function loadBooks() {
     if (!state.user) return;
-    const {data,error}=await supabaseClient.from("books").select("id,title,cover_path,created_at,is_public,author,description").eq("user_id",state.user.id).order("created_at");
-    if(error)throw error;
-    state.books=data||[];
-    if(!state.books.length){
-      const x=await supabaseClient.from("books").insert({user_id:state.user.id,title:"My Book"}).select().single();
-      if(x.error)throw x.error;
-      state.books=[x.data];
+    const core = await supabaseClient.from("books")
+      .select("id,user_id,title,cover_path,created_at")
+      .eq("user_id", state.user.id)
+      .order("created_at", { ascending: true });
+    if (core.error) throw core.error;
+
+    state.books = (core.data || []).map(b => ({
+      ...b,
+      is_public: false,
+      author: "",
+      description: ""
+    }));
+
+    // Publishing metadata is an additive feature. A missing migration must
+    // never make the user's existing private books disappear.
+    const meta = await supabaseClient.from("books")
+      .select("id,is_public,author,description")
+      .eq("user_id", state.user.id);
+
+    state.publicSchemaReady = !meta.error;
+    if (!meta.error) {
+      const byId = new Map((meta.data || []).map(b => [b.id, b]));
+      state.books = state.books.map(b => ({ ...b, ...(byId.get(b.id) || {}) }));
+    } else {
+      console.warn("Public-book metadata is not available yet:", meta.error);
     }
-    const savedId=localStorage.getItem("digital-book:last-book:"+state.user.id);
-    if(savedId && state.books.some(b=>b.id===savedId)) state.currentBookId=savedId;
-    if(!state.currentBookId||!state.books.some(b=>b.id===state.currentBookId))state.currentBookId=state.books[0].id;
-    localStorage.setItem("digital-book:last-book:"+state.user.id,state.currentBookId);
-    const b=state.books.find(x=>x.id===state.currentBookId);
-    state.bookTitle=b.title;
+
+    if (!state.books.length) {
+      const created = await supabaseClient.from("books")
+        .insert({ user_id: state.user.id, title: "My Book" })
+        .select("id,user_id,title,cover_path,created_at")
+        .single();
+      if (created.error) throw created.error;
+      state.books = [{
+        ...created.data,
+        is_public: false,
+        author: "",
+        description: ""
+      }];
+    }
+
+    const savedId = localStorage.getItem("digital-book:last-book:" + state.user.id);
+    if (savedId && state.books.some(b => b.id === savedId)) {
+      state.currentBookId = savedId;
+    }
+    if (!state.currentBookId || !state.books.some(b => b.id === state.currentBookId)) {
+      state.currentBookId = state.books[0].id;
+    }
+    localStorage.setItem("digital-book:last-book:" + state.user.id, state.currentBookId);
+
+    const book = state.books.find(b => b.id === state.currentBookId);
+    state.bookTitle = book.title || "My Book";
+    state.currentSectionId = state.sections.some(s => s.id === state.currentSectionId)
+      ? state.currentSectionId
+      : null;
+
     updateBookTitle();
     renderBookSelector();
     updateVisibilityButton();
@@ -403,7 +445,14 @@
       if(safe) request=request.or("title.ilike.%"+safe+"%,author.ilike.%"+safe+"%,description.ilike.%"+safe+"%");
     }
     const {data,error}=await request;
-    if(error){console.error("Public library error:",error);return}
+    if(error){
+      // Older databases can still run the private book app until the
+      // publishing migration is applied.
+      console.warn("Public library unavailable until the latest schema is applied:",error);
+      state.publicBooks=[];
+      await renderPublicLibrary();
+      return;
+    }
     state.publicBooks=data||[];
     await renderPublicLibrary();
   }
@@ -467,6 +516,10 @@
 
   async function updateBookVisibility(){
     if(!state.user||!state.currentBookId)return;
+    if (!state.publicSchemaReady) {
+      toast("Publishing needs the latest Supabase schema. Run supabase-repair.sql once.");
+      return;
+    }
     const book=state.books.find(b=>b.id===state.currentBookId);
     if(!book)return;
     const next=!book.is_public;
@@ -490,6 +543,10 @@
 
   async function editBookDetails(){
     if(!state.user||!state.currentBookId)return;
+    if (!state.publicSchemaReady) {
+      toast("Book details need the latest Supabase schema. Run supabase-repair.sql once.");
+      return;
+    }
     const book=state.books.find(b=>b.id===state.currentBookId);
     if(!book)return;
     const author=prompt("Author / creator name:",book.author||"");
@@ -507,7 +564,27 @@
     toast("Book details saved.");
   }
 
-  async function createBook(){const title=prompt("New book name","My New Book");if(!title?.trim())return;const x=await supabaseClient.from("books").insert({user_id:state.user.id,title:title.trim().slice(0,120)}).select().single();if(x.error){toast(x.error.message);return}state.currentBookId=x.data.id;await loadBooks();await loadPhotos();toast("Book created.")}
+  async function createBook(){
+    if(!state.user)return;
+    const title=prompt("New book name","My New Book");
+    if(!title?.trim())return;
+    try{
+      const x=await supabaseClient.from("books")
+        .insert({user_id:state.user.id,title:title.trim().slice(0,120)})
+        .select("id,user_id,title,cover_path,created_at")
+        .single();
+      if(x.error)throw x.error;
+      state.currentBookId=x.data.id;
+      state.currentSectionId=null;
+      localStorage.setItem("digital-book:last-book:"+state.user.id,state.currentBookId);
+      await loadBooks();
+      await loadPhotos();
+      toast("Book created.");
+    }catch(error){
+      console.error(error);
+      toast(error.message||"Could not create the book.");
+    }
+  }
   async function loadSections(){const x=await supabaseClient.from("sections").select("id,name,position").eq("book_id",state.currentBookId).order("position");if(x.error)throw x.error;state.sections=x.data||[];renderSectionSelector()}
   function renderSectionSelector(){const s=$("sectionSelect");s.innerHTML='<option value="">All sections</option>';state.sections.forEach(x=>{const o=document.createElement("option");o.value=x.id;o.textContent=x.name;s.appendChild(o)});s.value=state.currentSectionId||""}
   async function createSection(){const name=prompt("Section name","Chapter 1");if(!name?.trim())return;const x=await supabaseClient.from("sections").insert({book_id:state.currentBookId,name:name.trim().slice(0,120),position:state.sections.length}).select().single();if(x.error){toast(x.error.message);return}state.currentSectionId=x.data.id;await loadSections();await loadPhotos()}
@@ -1161,7 +1238,33 @@
     }[char]));
   }
 
-  async function renderCover(){const area=$("coverArea");if(!area)return;area.innerHTML="";const b=state.books.find(x=>x.id===state.currentBookId);if(!b?.cover_path){const d=document.createElement("div");d.className="cover-empty";d.textContent="No cover yet — use Cover to add one.";area.appendChild(d);return}const x=await supabaseClient.storage.from("photos").createSignedUrl(b.cover_path,3600);if(x.error)return;const img=document.createElement("img");img.className="cover";img.src=x.data.signedUrl;img.alt=b.title+" cover";area.appendChild(img)}
+  async function renderCover(){
+    const area=$("coverArea");
+    if(!area)return;
+    area.innerHTML="";
+    const b=state.books.find(x=>x.id===state.currentBookId);
+    if(!b?.cover_path){
+      const d=document.createElement("div");
+      d.className="cover-empty";
+      d.textContent="No cover yet — use Cover to add one.";
+      area.appendChild(d);
+      return;
+    }
+    const x=await supabaseClient.storage.from("photos").createSignedUrl(b.cover_path,3600);
+    if(x.error){
+      const d=document.createElement("div");
+      d.className="cover-empty";
+      d.textContent="Cover exists, but it could not be loaded. Check Storage policies.";
+      area.appendChild(d);
+      console.error("Cover signed URL error:",x.error);
+      return;
+    }
+    const img=document.createElement("img");
+    img.className="cover";
+    img.src=x.data.signedUrl;
+    img.alt=b.title+" cover";
+    area.appendChild(img);
+  }
   async function init() {
     if (!CONFIGURED) {
       $("syncStatus").innerHTML = '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff9f0a;margin-right:5px"></span>Setup required';
@@ -1178,7 +1281,14 @@
     updateHeader();
     render();
     await loadPublicBooks();
-    if (state.user) await loadBooks();
+    if (state.user) {
+      try {
+        await loadBooks();
+      } catch (error) {
+        console.error("Private book initialization failed:", error);
+        toast(error.message || "Could not load your account books.");
+      }
+    }
 
       supabaseClient.auth.onAuthStateChange((event, session) => {
       state.user=session?.user||null;
@@ -1229,7 +1339,29 @@
   $("newSectionButton").addEventListener("click",()=>{if(!state.user){openAuth("login");return;}createSection()});
   $("sectionSelect").addEventListener("change",async e=>{if(!state.user)return;state.currentSectionId=e.target.value||null;await loadPhotos()});
   $("coverButton").addEventListener("click",()=>{if(!state.user){openAuth("login");return;}$("coverInput").click()});
-  $("coverInput").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;if(!state.user){toast("Log in first.");e.target.value="";return;}const ext=file.name.split(".").pop()||"jpg";const path=state.user.id+"/covers/"+state.currentBookId+"."+ext;const up=await supabaseClient.storage.from("photos").upload(path,file,{upsert:true,contentType:file.type});if(up.error){toast(up.error.message);return}const x=await supabaseClient.from("books").update({cover_path:path}).eq("id",state.currentBookId).eq("user_id",state.user.id);if(x.error){toast(x.error.message);return}state.books.find(b=>b.id===state.currentBookId).cover_path=path;await renderCover();toast("Cover saved.");e.target.value=""});
+  $("coverInput").addEventListener("change",async e=>{
+    const file=e.target.files[0];
+    e.target.value="";
+    if(!file)return;
+    if(!state.user){toast("Log in first.");return;}
+    if(!state.currentBookId){toast("Create or select a book first.");return;}
+    try{
+      const ext=extensionFor(file);
+      const path=state.user.id+"/covers/"+state.currentBookId+"."+ext;
+      const up=await supabaseClient.storage.from("photos").upload(path,file,{upsert:true,contentType:file.type||"image/jpeg",cacheControl:"31536000"});
+      if(up.error)throw up.error;
+      const x=await supabaseClient.from("books").update({cover_path:path}).eq("id",state.currentBookId).eq("user_id",state.user.id);
+      if(x.error)throw x.error;
+      const book=state.books.find(b=>b.id===state.currentBookId);
+      if(book)book.cover_path=path;
+      await renderCover();
+      renderBookLibrary();
+      toast("Cover saved.");
+    }catch(error){
+      console.error(error);
+      toast(error.message||"Could not save the cover.");
+    }
+  });
   $("bookTitle").addEventListener("blur", saveBookTitle);
   $("bookTitle").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } });
 
