@@ -173,3 +173,57 @@ with check (
     select 1 from public.sections s where s.id = section_id and s.book_id = book_id
   ))
 );
+
+
+-- V1.7: public book discovery/library
+alter table public.books add column if not exists is_public boolean not null default false;
+alter table public.books add column if not exists description text not null default '';
+alter table public.books add column if not exists author text not null default '';
+
+create index if not exists books_public_created_idx
+on public.books(is_public, created_at desc);
+
+-- Keep owner management, and allow the public to read only published books.
+drop policy if exists "Users can manage their own books" on public.books;
+drop policy if exists "Anyone can read published books" on public.books;
+
+create policy "Users can manage their own books"
+on public.books for all to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "Anyone can read published books"
+on public.books for select
+to anon, authenticated
+using (is_public = true);
+
+-- Published photos are readable only when their parent book is published.
+drop policy if exists "Anyone can read photos from published books" on public.photos;
+create policy "Anyone can read photos from published books"
+on public.photos for select
+to anon, authenticated
+using (
+  exists (
+    select 1
+    from public.books b
+    where b.id = photos.book_id
+      and b.is_public = true
+  )
+);
+
+-- Signed URLs for the private photos bucket still require SELECT on storage.objects.
+-- This policy exposes only objects that are attached to a published book.
+drop policy if exists "Anyone can read storage for published books" on storage.objects;
+create policy "Anyone can read storage for published books"
+on storage.objects for select
+to anon, authenticated
+using (
+  bucket_id = 'photos'
+  and exists (
+    select 1
+    from public.photos p
+    join public.books b on b.id = p.book_id
+    where p.storage_path = storage.objects.name
+      and b.is_public = true
+  )
+);
