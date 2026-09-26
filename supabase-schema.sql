@@ -219,12 +219,20 @@ on storage.objects for select
 to anon, authenticated
 using (
   bucket_id = 'photos'
-  and exists (
-    select 1
-    from public.photos p
-    join public.books b on b.id = p.book_id
-    where p.storage_path = storage.objects.name
-      and b.is_public = true
+  and (
+    exists (
+      select 1
+      from public.photos p
+      join public.books b on b.id = p.book_id
+      where p.storage_path = storage.objects.name
+        and b.is_public = true
+    )
+    or exists (
+      select 1
+      from public.books b
+      where b.cover_path = storage.objects.name
+        and b.is_public = true
+    )
   )
 );
 
@@ -241,3 +249,12 @@ using (
       and b.is_public = true
   )
 );
+
+
+-- V1.8: browser-facing grants. RLS still controls which rows are reachable.
+grant select, insert, update, delete on public.books to authenticated;
+grant select on public.books to anon;
+grant select, insert, update, delete on public.sections to authenticated;
+grant select on public.sections to anon;
+grant select, insert, update, delete on public.photos to authenticated;
+grant select on public.photos to anon;
