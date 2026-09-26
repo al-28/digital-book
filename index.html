@@ -109,27 +109,11 @@
       main{padding:24px 12px 70px}.hero{align-items:flex-start;flex-direction:column;margin-bottom:20px}.hero h1{font-size:38px}
       .upload-zone{padding:34px 18px}.book-grid{gap:48px}.photo-frame{border-radius:10px}.photo-actions{opacity:1}
     }
-  </style>
+  body.light{--bg:#f5f5f7;--surface:#fff;--surface2:#ececef;--line:#d8d8de;--text:#151517;--muted:#666671;--accent:#111}.light .topbar{background:rgba(245,245,247,.84)}.light .btn{background:#fff;color:#151517;border-color:#d8d8de}.light .btn.primary{background:#151517;color:#fff}.toolbar-group{display:flex;align-items:center;gap:6px;padding:4px;border:1px solid var(--line);border-radius:14px;background:rgba(127,127,127,.05)}.toolbar-group .btn{border:0;background:transparent;border-radius:10px;padding:8px 10px}.toolbar-group .btn:hover{background:var(--surface2)}.book-menu{position:relative}.book-menu-panel{position:absolute;right:0;top:48px;width:250px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:8px;box-shadow:0 20px 70px rgba(0,0,0,.3);z-index:35}.menu-item{display:flex;align-items:center;justify-content:space-between;width:100%;border:0;background:transparent;color:var(--text);padding:11px 12px;border-radius:10px;text-align:left}.menu-item:hover{background:var(--surface2)}.menu-item.danger{color:var(--danger)}.reader-tools{display:flex;align-items:center;gap:7px}.reader-bookmark.active{background:#ffcc00;color:#111;border-color:#ffcc00}.page-turn{perspective:1800px}.page-turn .reader-sheet{animation:pageInRight .38s cubic-bezier(.2,.7,.2,1)}.page-turn.left .reader-sheet{animation-name:pageInLeft}@keyframes pageInRight{0%{opacity:.35;transform:rotateY(-72deg) translateX(28px);transform-origin:left center}100%{opacity:1;transform:rotateY(0) translateX(0);transform-origin:left center}}@keyframes pageInLeft{0%{opacity:.35;transform:rotateY(72deg) translateX(-28px);transform-origin:right center}100%{opacity:1;transform:rotateY(0) translateX(0);transform-origin:right center}}.bookmark-list{display:grid;gap:8px}.bookmark-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);padding:10px;border-radius:12px;background:var(--surface)}.library-actions{display:flex;gap:6px;margin-top:9px}.library-actions .btn{flex:1;padding:8px 10px;font-size:12px}@media(max-width:900px){.topbar{height:auto;min-height:68px;padding:10px 14px;gap:10px}.brand{flex:1}.actions{flex-wrap:wrap;justify-content:flex-end}.account{display:none}}@media(max-width:650px){.actions{max-width:62%;gap:4px}.toolbar-group{gap:2px}.toolbar-group .btn{font-size:0;width:38px;height:38px;padding:0;display:grid;place-items:center}.toolbar-group .btn::first-letter{font-size:16px}.book-menu-panel{right:-40px}}</style>
 </head>
 <body>
 <div class="app">
-  <header class="topbar">
-    <div class="brand">
-      <div class="brand-mark">B</div>
-      <div class="book-switcher"><select id="bookSelect" aria-label="Select book"></select><button class="btn icon" id="newBookButton" title="New book">＋</button></div>
-      <div>
-        <div class="brand-title">Digital Book</div>
-        <div class="brand-meta" id="syncStatus"><span class="status-dot"></span>Cloud synced</div>
-      </div>
-    </div>
-    <div class="actions">
-      <div class="account" id="accountEmail"></div>
-      <button class="btn" id="discoverButton">Discover</button><button class="btn" id="libraryButton">My Books</button><button class="btn" id="authButton">Log in</button>
-      <button class="btn" id="readButton">Read</button><button class="btn" id="coverButton">Cover</button>
-      <button class="btn primary" id="headerUpload">＋ Add Photos</button>
-      <input id="coverInput" type="file" accept="image/*" class="hidden">
-    </div>
-  </header>
+  <header class="topbar"><div class="brand"><div class="brand-mark">B</div><div class="book-switcher"><select id="bookSelect" aria-label="Select book"></select><button class="btn icon" id="newBookButton" title="New book">＋</button></div><div><div class="brand-title">Digital Book</div><div class="brand-meta" id="syncStatus"><span class="status-dot"></span>Cloud synced</div></div></div><div class="actions"><div class="account" id="accountEmail"></div><div class="toolbar-group"><button class="btn" id="discoverButton" title="Discover">⌕</button><button class="btn" id="libraryButton" title="My Books">▦</button><button class="btn" id="readButton" title="Read">📖</button></div><div class="toolbar-group"><div class="book-menu"><button class="btn" id="bookMenuButton">Book ▾</button><div id="bookMenuPanel" class="book-menu-panel hidden"><button class="menu-item" id="editBookButton">✎ <span>Edit title & details</span></button><button class="menu-item" id="coverButton">▣ <span>Add / change cover</span></button><button class="menu-item" id="visibilityButton">◉ <span>Publish</span></button><button class="menu-item" id="bookmarksButton">🔖 <span>Bookmarks</span></button><button class="menu-item danger" id="deleteBookButton">⌫ <span>Delete this book</span></button></div></div><button class="btn" id="themeButton" title="Light / dark mode">☼</button></div><button class="btn primary" id="headerUpload">＋ Photos</button><input id="coverInput" type="file" accept="image/*" class="hidden"></div></header>
 
   <main>
     <section class="discover" id="discoverSection">
@@ -151,7 +135,7 @@
       <div>
         <h1 id="bookTitle" contenteditable="true" spellcheck="false">My Book</h1>
         <p id="countText">Your photos, in the order you added them.</p>
-        <div style="margin-top:14px;display:flex;gap:8px;align-items:center"><select id="sectionSelect" style="background:#141416;color:#fff;border:1px solid #2a2a2e;border-radius:10px;padding:9px 12px"></select><button class="btn" id="newSectionButton">＋ Section</button><button class="btn" id="bookDetailsButton">Details</button><button class="btn" id="visibilityButton">Publish</button></div>
+        <div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select id="sectionSelect" style="background:#141416;color:#fff;border:1px solid #2a2a2e;border-radius:10px;padding:9px 12px"></select><button class="btn" id="newSectionButton">＋ Section</button><button class="btn" id="bookDetailsButton">Details</button></div>
       </div>
     </section>
 
@@ -174,7 +158,7 @@
   </main>
 </div>
 
-<div id="authModal" class="modal-backdrop hidden">
+<div id="bookEditModal" class="modal-backdrop hidden"><div class="modal"><h2>Edit book</h2><p>Change the title, author, and description in one place.</p><div class="field"><label for="editBookTitle">Book name</label><input id="editBookTitle" maxlength="120"></div><div class="field"><label for="editBookAuthor">Author / creator</label><input id="editBookAuthor" maxlength="160"></div><div class="field"><label for="editBookDescription">Description</label><input id="editBookDescription" maxlength="1000"></div><div class="modal-actions"><button class="btn" id="bookEditCancel">Cancel</button><button class="btn primary" id="bookEditSave">Save</button></div></div></div><div id="bookmarksModal" class="modal-backdrop hidden"><div class="modal" style="width:min(560px,100%)"><h2>Bookmarks</h2><p>Saved pages for this book.</p><div id="bookmarkList" class="bookmark-list"></div><div class="modal-actions"><button class="btn" id="bookmarksClose">Close</button></div></div></div><div id="authModal" class="modal-backdrop hidden">
   <div class="modal">
     <h2 id="authTitle">Log in</h2>
     <p id="authDescription">Use your account to access the same book from your phone, Mac, tablet, or another computer.</p>
@@ -207,7 +191,7 @@
   <div class="reader-top">
     <div class="reader-title" id="readerTitle">Reading</div>
     <div style="display:flex;gap:8px">
-      <button class="btn" id="readerToc">Contents</button>
+      <div class="reader-tools"><button class="btn reader-bookmark" id="readerBookmark" title="Bookmark page">🔖</button><button class="btn" id="readerToc">Contents</button></div>
       <button class="btn" id="readerClose">Close</button>
     </div>
   </div>
@@ -280,7 +264,7 @@
     publicBook: null,
     publicSections: [],
     publicPhotos: [],
-    readerMode: "private"
+    readerMode: "private", favorites: new Set(), bookmarks: [], theme: localStorage.getItem("digital-book:theme") || "dark", readerDirection: 0
   };
 
   const $ = (id) => document.getElementById(id);
@@ -296,6 +280,9 @@
   function setLoading(value) {
     $("loading").classList.toggle("hidden", !value);
   }
+
+  function applyTheme(){document.body.classList.toggle("light",state.theme==="light");$("themeButton").textContent=state.theme==="light"?"☾":"☼";localStorage.setItem("digital-book:theme",state.theme)}
+  function toggleTheme(){state.theme=state.theme==="light"?"dark":"light";applyTheme()}
 
   function updateHeader() {
     $("accountEmail").textContent = state.user ? state.user.email : "";
@@ -404,32 +391,7 @@
   }
   function openLibrary(){if(!state.user){openAuth("login");return;}renderBookLibrary();$("libraryModal").classList.remove("hidden")}
   function closeLibrary(){$("libraryModal").classList.add("hidden")}
-  function renderBookLibrary(){
-    const panel=$("bookLibrary");
-    if(!panel)return;
-    panel.innerHTML="";
-    state.books.forEach(book=>{
-      const tile=document.createElement("button");
-      tile.className="book-tile";
-      const cover=document.createElement("div");
-      if(book.cover_path){
-        const img=document.createElement("img");
-        img.className="book-tile-cover";
-        img.alt=book.title+" cover";
-        supabaseClient.storage.from("photos").createSignedUrl(book.cover_path,3600).then(x=>{if(!x.error)img.src=x.data.signedUrl});
-        cover.appendChild(img);
-      }else{
-        cover.className="book-tile-empty";
-        cover.textContent="No cover";
-      }
-      const title=document.createElement("div");title.className="book-tile-title";title.textContent=book.title;
-      const meta=document.createElement("div");meta.className="book-tile-meta";
-      meta.innerHTML=(book.is_public?'<span class="visibility-public">● Published</span>':'<span class="visibility-private">● Private</span>')+" · "+(book.id===state.currentBookId?"Currently open":"Open this book");
-      tile.append(cover,title,meta);
-      tile.addEventListener("click",async()=>{closeLibrary();await selectBook(book.id);window.scrollTo({top:0,behavior:"smooth"});toast("Opened “"+book.title+"”.")});
-      panel.appendChild(tile);
-    });
-  }
+  function renderBookLibrary(){const panel=$("bookLibrary");if(!panel)return;panel.innerHTML="";state.books.forEach(book=>{const tile=document.createElement("div");tile.className="book-tile";const cover=document.createElement("div");if(book.cover_path){const img=document.createElement("img");img.className="book-tile-cover";img.alt=book.title+" cover";supabaseClient.storage.from("photos").createSignedUrl(book.cover_path,3600).then(x=>{if(!x.error)img.src=x.data.signedUrl});cover.appendChild(img)}else{cover.className="book-tile-empty";cover.textContent="No cover"}const title=document.createElement("div");title.className="book-tile-title";title.textContent=book.title;const meta=document.createElement("div");meta.className="book-tile-meta";meta.innerHTML=(book.is_public?'<span class="visibility-public">● Published</span>':'<span class="visibility-private">● Private</span>')+" · "+(book.id===state.currentBookId?"Open":"Saved");const actions=document.createElement("div");actions.className="library-actions";const open=document.createElement("button");open.className="btn";open.textContent="Open";open.onclick=async()=>{closeLibrary();await selectBook(book.id)};const read=document.createElement("button");read.className="btn";read.textContent="Read";read.onclick=async()=>{closeLibrary();await selectBook(book.id);openReader()};const fav=document.createElement("button");fav.className="btn";fav.textContent=state.favorites.has(book.id)?"♥":"♡";fav.title="Favorite";fav.onclick=()=>toggleFavorite(book.id);actions.append(open,read,fav);tile.append(cover,title,meta,actions);panel.appendChild(tile)})}
 
 
   async function loadPublicBooks(query=""){
@@ -564,6 +526,7 @@
     toast("Book details saved.");
   }
 
+  async function deleteCurrentBook(){if(!state.user||!state.currentBookId)return;const book=state.books.find(b=>b.id===state.currentBookId);if(!book)return;if(!confirm("Delete “"+book.title+"”? This removes its photos and cover too."))return;try{const {data:photos,error:pe}=await supabaseClient.from("photos").select("storage_path").eq("book_id",book.id);if(pe)throw pe;const paths=(photos||[]).map(p=>p.storage_path).filter(Boolean);if(book.cover_path)paths.push(book.cover_path);if(paths.length){const sd=await supabaseClient.storage.from("photos").remove([...new Set(paths)]);if(sd.error)throw sd.error}const {error}=await supabaseClient.from("books").delete().eq("id",book.id).eq("user_id",state.user.id);if(error)throw error;state.currentBookId=null;state.currentSectionId=null;await loadBooks();await loadFavorites();await loadPhotos();toast("Book deleted")}catch(error){console.error(error);toast(error.message||"Could not delete the book")}}
   async function createBook(){
     if(!state.user)return;
     const title=prompt("New book name","My New Book");
@@ -597,6 +560,13 @@
   }
 
 
+  async function loadFavorites(){state.favorites=new Set();if(!state.user)return;const {data,error}=await supabaseClient.from("book_favorites").select("book_id").eq("user_id",state.user.id);if(!error)(data||[]).forEach(x=>state.favorites.add(x.book_id))}
+  async function toggleFavorite(bookId){if(!state.user){openAuth("login");return}if(state.favorites.has(bookId)){const {error}=await supabaseClient.from("book_favorites").delete().eq("user_id",state.user.id).eq("book_id",bookId);if(error){toast(error.message);return}state.favorites.delete(bookId)}else{const {error}=await supabaseClient.from("book_favorites").insert({user_id:state.user.id,book_id:bookId});if(error){toast(error.message);return}state.favorites.add(bookId)}renderBookLibrary();await loadPublicBooks($("publicSearch").value)}
+  async function loadBookmarks(){state.bookmarks=[];if(!state.user||!state.currentBookId)return;const {data,error}=await supabaseClient.from("bookmarks").select("id,book_id,photo_id,page_index,created_at").eq("user_id",state.user.id).eq("book_id",state.currentBookId).order("created_at",{ascending:false});if(!error)state.bookmarks=data||[]}
+  function isCurrentPageBookmarked(){const page=state.readerPages[state.readerIndex];return !!(page&&page.photo&&state.bookmarks.some(b=>b.photo_id===page.photo.id))}
+  async function toggleReaderBookmark(){if(!state.user||state.readerMode!=="private")return;const page=state.readerPages[state.readerIndex];if(!page||!page.photo)return;const existing=state.bookmarks.find(b=>b.photo_id===page.photo.id);if(existing){const {error}=await supabaseClient.from("bookmarks").delete().eq("id",existing.id).eq("user_id",state.user.id);if(error){toast(error.message);return}state.bookmarks=state.bookmarks.filter(b=>b.id!==existing.id);toast("Bookmark removed")}else{const {data,error}=await supabaseClient.from("bookmarks").insert({user_id:state.user.id,book_id:state.currentBookId,photo_id:page.photo.id,page_index:state.readerIndex}).select().single();if(error){toast(error.message);return}state.bookmarks.unshift(data);toast("Page bookmarked")}updateReaderBookmark()}
+  function updateReaderBookmark(){const b=$("readerBookmark");if(b)b.classList.toggle("active",isCurrentPageBookmarked())}
+  function openBookmarks(){if(!state.user){openAuth("login");return}loadBookmarks().then(()=>{const list=$("bookmarkList");list.innerHTML="";if(!state.bookmarks.length){list.innerHTML='<div class="empty" style="padding:30px">No bookmarks yet.</div>'}else state.bookmarks.forEach(b=>{const row=document.createElement("div");row.className="bookmark-row";const p=state.photos.find(x=>x.id===b.photo_id);const label=document.createElement("span");label.textContent=p?p.filename:"Saved page";const btn=document.createElement("button");btn.className="btn";btn.textContent="Open";btn.onclick=()=>{const i=state.readerPages.findIndex(x=>x.type==="photo"&&x.photo.id===b.photo_id);if(i>=0){state.readerIndex=i;$("bookmarksModal").classList.add("hidden");$("reader").classList.remove("hidden");renderReaderPage();renderReaderToc()}};row.append(label,btn);list.appendChild(row)});$("bookmarksModal").classList.remove("hidden")})}
   function buildReaderPages() {
     const pages = [];
     if(state.readerMode==="public"){
@@ -620,6 +590,7 @@
     buildReaderPages();
     if (!state.readerPages.length) { toast("Add some photos before opening Reading Mode."); return; }
     state.readerIndex = 0;
+    await loadBookmarks();
     $("reader").classList.remove("hidden");
     await renderReaderPage();
     renderReaderToc();
@@ -629,7 +600,7 @@
     const page = state.readerPages[state.readerIndex];
     if (!page) return;
     const area = $("readerPage");
-    area.innerHTML = "";
+    area.innerHTML = "";area.classList.remove("page-turn","left");void area.offsetWidth;area.classList.add("page-turn");if(state.readerDirection<0)area.classList.add("left");
     const sheet = document.createElement("div");
     sheet.className = "reader-sheet" + (page.type === "cover" ? " cover-sheet" : "");
     if (page.type === "cover") {
@@ -660,11 +631,11 @@
     $("readerTitle").textContent = state.readerMode==="public" ? state.publicBook?.title || "Reading" : state.bookTitle;
     $("readerPageNumber").textContent = (state.readerIndex + 1) + " / " + state.readerPages.length;
     $("readerPrev").disabled = state.readerPages.length < 2;
-    $("readerNext").disabled = state.readerPages.length < 2;
+    $("readerNext").disabled = state.readerPages.length < 2;updateReaderBookmark();
     document.querySelectorAll(".toc-item").forEach((el, i) => el.classList.toggle("active", i === state.readerIndex));
   }
 
-  function moveReader(delta) {
+  function moveReader(delta) {state.readerDirection=delta;
     if (!state.readerPages.length) return;
     state.readerIndex = (state.readerIndex + delta + state.readerPages.length) % state.readerPages.length;
     renderReaderPage();
@@ -1067,6 +1038,7 @@
     }
   }
 
+  async function downloadPhoto(photo){try{const {data,error}=await supabaseClient.storage.from("photos").download(photo.storage_path);if(error)throw error;const url=URL.createObjectURL(data);const a=document.createElement("a");a.href=url;a.download=photo.filename||"photo";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(error){toast(error.message||"Could not download photo")}}
   async function deletePhoto(id) {
     const photo = state.photos.find(p => p.id === id);
     if (!photo) return;
@@ -1181,7 +1153,7 @@
         <div class="photo-frame">
           <img src="${photo.url}" alt="${escapeHtml(photo.filename)}" loading="lazy">
           <div class="photo-actions">
-            <button class="mini delete" title="Delete photo" aria-label="Delete photo">×</button>
+            <button class="mini download" title="Download photo" aria-label="Download photo">↓</button><button class="mini delete" title="Delete photo" aria-label="Delete photo">×</button>
           </div>
         </div>
         <div class="filename">${escapeHtml(photo.filename)}</div>
@@ -1200,7 +1172,7 @@
       caption.addEventListener("blur", () => saveCaption(photo, caption.value));
       card.appendChild(caption);
 
-      card.querySelector(".delete").addEventListener("click", e => {
+      card.querySelector(".download").addEventListener("click", e => {e.stopPropagation();downloadPhoto(photo)});card.querySelector(".delete").addEventListener("click", e => {
         e.stopPropagation();
         deletePhoto(photo.id);
       });
@@ -1265,7 +1237,7 @@
     img.alt=b.title+" cover";
     area.appendChild(img);
   }
-  async function init() {
+  async function init() {applyTheme();
     if (!CONFIGURED) {
       $("syncStatus").innerHTML = '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff9f0a;margin-right:5px"></span>Setup required';
       $("empty").classList.remove("hidden");
@@ -1283,7 +1255,7 @@
     await loadPublicBooks();
     if (state.user) {
       try {
-        await loadBooks();
+        await loadBooks();await loadFavorites();
       } catch (error) {
         console.error("Private book initialization failed:", error);
         toast(error.message || "Could not load your account books.");
@@ -1338,7 +1310,7 @@
   $("newBookButton").addEventListener("click",()=>{if(!state.user){openAuth("login");return;}createBook()});
   $("newSectionButton").addEventListener("click",()=>{if(!state.user){openAuth("login");return;}createSection()});
   $("sectionSelect").addEventListener("change",async e=>{if(!state.user)return;state.currentSectionId=e.target.value||null;await loadPhotos()});
-  $("coverButton").addEventListener("click",()=>{if(!state.user){openAuth("login");return;}$("coverInput").click()});
+  $("bookMenuButton").addEventListener("click",()=>$("bookMenuPanel").classList.toggle("hidden"));$("themeButton").addEventListener("click",toggleTheme);$("editBookButton").addEventListener("click",()=>{$("bookMenuPanel").classList.add("hidden");editBookDetails()});$("deleteBookButton").addEventListener("click",()=>{$("bookMenuPanel").classList.add("hidden");deleteCurrentBook()});$("bookmarksButton").addEventListener("click",()=>{$("bookMenuPanel").classList.add("hidden");openBookmarks()});$("coverButton").addEventListener("click",()=>{$("bookMenuPanel").classList.add("hidden");if(!state.user){openAuth("login");return;}$("coverInput").click()});
   $("coverInput").addEventListener("change",async e=>{
     const file=e.target.files[0];
     e.target.value="";
@@ -1405,10 +1377,10 @@
   $("discoverButton").addEventListener("click",()=>document.getElementById("discoverSection").scrollIntoView({behavior:"smooth"}));
   $("publicSearch").addEventListener("input",()=>{clearTimeout(state.publicSearchTimer);state.publicSearchTimer=setTimeout(()=>loadPublicBooks($("publicSearch").value),250)});
   $("visibilityButton").addEventListener("click",updateBookVisibility);
-  $("bookDetailsButton").addEventListener("click",editBookDetails);
+  $("bookDetailsButton").addEventListener("click",editBookDetails);$("bookEditCancel").addEventListener("click",()=>$("bookEditModal").classList.add("hidden"));$("bookEditSave").addEventListener("click",saveBookDetails);$("bookmarksClose").addEventListener("click",()=>$("bookmarksModal").classList.add("hidden"));$("readerBookmark").addEventListener("click",toggleReaderBookmark);
   $("libraryButton").addEventListener("click", openLibrary);
   $("libraryClose").addEventListener("click", closeLibrary);
-  $("libraryModal").addEventListener("click", e => { if(e.target === $("libraryModal")) closeLibrary(); });
+  $("libraryModal").addEventListener("click", e => { if(e.target === $("libraryModal")) closeLibrary(); });$("bookEditModal").addEventListener("click",e=>{if(e.target===$("bookEditModal"))$("bookEditModal").classList.add("hidden")});$("bookmarksModal").addEventListener("click",e=>{if(e.target===$("bookmarksModal"))$("bookmarksModal").classList.add("hidden")});
   $("authSubmit").addEventListener("click", authenticate);
   $("emailInput").addEventListener("keydown", e => { if(e.key === "Enter") { e.preventDefault(); authenticate(); } });
   $("passwordInput").addEventListener("keydown", e => { if(e.key === "Enter") { e.preventDefault(); authenticate(); } });
