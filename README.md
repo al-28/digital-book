@@ -158,3 +158,29 @@ Keep the Supabase publishable/anon key in the browser only. Never put a Supabase
 ### Deployment
 
 This project is a static frontend, so GitHub Pages is the simplest deployment target. Fly.io can host static files too, but would add a container/web-server layer that this project does not currently need.
+## V1.7 — Public Library
+
+The app now includes a public discovery page for books that their owners choose to publish.
+
+### Public library behavior
+
+- **Public Library** is visible without logging in.
+- Search books by title, author, or description.
+- Published books can be opened directly into Reading Mode.
+- Published books expose their chapters/sections and book pages to public readers.
+- A book is **private by default**. The owner can use **Publish** to make it discoverable, and **Unpublish** to remove it from the public library.
+- The existing private account/book workflow remains available under **My Books**.
+
+### V1.7 Supabase migration
+
+Run the updated `supabase-schema.sql` in the Supabase SQL Editor. The migration adds:
+
+- `books.is_public`
+- `books.author`
+- `books.description`
+- public-read RLS policies for published books, sections, photos, and their storage objects
+- an index for public-book discovery
+
+The existing `photos` bucket stays private. Only files belonging to a published book are readable by public readers through the new RLS policies.
+
+This follows Supabase's RLS model: public data should have an explicit `SELECT` policy, and private Storage files require `SELECT` permission for signed URLs.
