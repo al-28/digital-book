@@ -95,6 +95,7 @@
 
   <main>
     <section class="hero">
+      <div id="coverArea"></div>
       <div>
         <h1 id="bookTitle" contenteditable="true" spellcheck="false">My Book</h1>
         <p id="countText">Your photos, in the order you added them.</p>
@@ -212,7 +213,7 @@
     const title = $("bookTitle").textContent.trim().slice(0, 120) || "My Book";
     state.bookTitle = title;
     try {
-      const { error } = await supabaseClient.from("book_settings").upsert({ user_id: state.user.id, title });
+      const { error } = await supabaseClient.from("books").update({ title }).eq("id", state.currentBookId).eq("user_id", state.user.id);
       if (error) throw error;
       toast("Book title saved.");
     } catch (error) {
