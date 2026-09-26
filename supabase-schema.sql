@@ -107,3 +107,34 @@ create policy "Users can insert their own book settings" on public.book_settings
 
 drop policy if exists "Users can update their own book settings" on public.book_settings;
 create policy "Users can update their own book settings" on public.book_settings for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- V1.2: multiple books and sections
+create table if not exists public.books (
+ id uuid primary key default gen_random_uuid(),
+ user_id uuid not null references auth.users(id) on delete cascade,
+ title text not null default 'My Book',
+ cover_path text,
+ created_at timestamptz not null default now()
+);
+alter table public.books enable row level security;
+drop policy if exists "Users can manage their own books" on public.books;
+create policy "Users can manage their own books" on public.books for all to authenticated using (auth.uid()=user_id) with check (auth.uid()=user_id);
+
+create table if not exists public.sections (
+ id uuid primary key default gen_random_uuid(),
+ book_id uuid not null references public.books(id) on delete cascade,
+ name text not null,
+ position bigint not null default 0,
+ created_at timestamptz not null default now()
+);
+alter table public.sections enable row level security;
+drop policy if exists "Users can manage their own sections" on public.sections;
+create policy "Users can manage their own sections" on public.sections for all to authenticated
+using (exists(select 1 from public.books b where b.id=book_id and b.user_id=auth.uid()))
+with check (exists(select 1 from public.books b where b.id=book_id and b.user_id=auth.uid()));
+
+alter table public.photos add column if not exists book_id uuid references public.books(id) on delete cascade;
+alter table public.photos add column if not exists section_id uuid references public.sections(id) on delete set null;
+insert into public.books(user_id,title) select user_id,coalesce(title,'My Book') from public.book_settings where not exists(select 1 from public.books b where b.user_id=public.book_settings.user_id);
+update public.photos p set book_id=b.id from public.books b where p.user_id=b.user_id and p.book_id is null;
+create index if not exists photos_book_position_idx on public.photos(book_id,position);
