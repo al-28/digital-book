@@ -155,6 +155,7 @@
     <div class="auth-divider">or</div>
     <button class="btn auth-provider" id="googleButton">Continue with Google</button>
     <button class="auth-link" id="forgotPassword">Forgot your password?</button>
+    <button class="auth-link hidden" id="resendConfirmation">Resend confirmation email</button>
     <button class="btn" id="authSwitch" style="width:100%;margin-top:4px">Create an account instead</button>
   </div>
 </div>
@@ -197,7 +198,7 @@
   <div class="viewer-counter" id="viewerCounter"></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1"></script>
 <script>
   /*
     ================================================================
@@ -218,7 +219,14 @@
     !SUPABASE_ANON_KEY.startsWith("YOUR_");
 
   const supabaseClient = CONFIGURED
-    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          lockAcquireTimeout: 5000
+        }
+      })
     : null;
 
   const state = {
@@ -494,7 +502,9 @@
     $("googleButton").disabled = value;
     $("forgotPassword").disabled = value;
     $("authSwitch").disabled = value;
-    $("authCancel").disabled = value;
+    // Cancel must always remain usable, even while an auth request is pending.
+    $("authCancel").disabled = false;
+    $("resendConfirmation").disabled = value;
     $("authSubmit").textContent = value
       ? (state.authMode === "login" ? "Logging in…" : "Creating…")
       : (state.authMode === "login" ? "Log in" : "Create account");
@@ -510,6 +520,7 @@
     $("authSwitch").textContent = login ? "Create an account instead" : "I already have an account";
     $("passwordInput").autocomplete = login ? "current-password" : "new-password";
     $("forgotPassword").classList.toggle("hidden", !login);
+    $("resendConfirmation").classList.add("hidden");
     setAuthMessage("");
   }
 
@@ -560,13 +571,23 @@
     setAuthMessage(state.authMode === "login" ? "Signing you in…" : "Creating your account…");
 
     try {
-      const result = state.authMode === "login"
-        ? await supabaseClient.auth.signInWithPassword({ email, password })
-        : await supabaseClient.auth.signUp({
+      // Never leave the button stuck forever if the browser/network/Auth email service
+      // fails to resolve a request. Supabase Auth itself remains the source of truth.
+      const authPromise = state.authMode === "login"
+        ? supabaseClient.auth.signInWithPassword({ email, password })
+        : supabaseClient.auth.signUp({
             email,
             password,
             options: { emailRedirectTo: redirectUrl() }
           });
+
+      const result = await Promise.race([
+        authPromise,
+        new Promise((_, reject) => setTimeout(
+          () => reject(new Error("Authentication is taking too long. Check the browser console and your Supabase Auth settings, then try again.")),
+          20000
+        ))
+      ]);
 
       if (result.error) throw result.error;
 
@@ -575,14 +596,22 @@
         setTimeout(closeAuth, 350);
       } else if (result.data?.session) {
         setAuthMessage("Account created. You're now signed in.", "success");
+        $("passwordInput").value = "";
         setTimeout(closeAuth, 500);
-      } else {
+      } else if (result.data?.user) {
+        // With Confirm Email enabled, Supabase intentionally returns a user but no session.
         setAuthMessage("Account created. Check your email to confirm your address.", "success");
         $("passwordInput").value = "";
+        $("resendConfirmation").classList.remove("hidden");
+      } else {
+        setAuthMessage("Supabase accepted the signup request, but no session was returned. Check Authentication → Users in Supabase.", "success");
+        $("passwordInput").value = "";
+        $("resendConfirmation").classList.remove("hidden");
       }
     } catch (error) {
       console.error("Authentication error:", error);
-      setAuthMessage(error.message || "Authentication failed. Please try again.", "error");
+      const message = error?.message || "Authentication failed. Please try again.";
+      setAuthMessage(message, "error");
     } finally {
       setAuthBusy(false);
     }
@@ -606,6 +635,38 @@
     } catch (error) {
       console.error("Google sign-in error:", error);
       setAuthMessage(error.message || "Google sign-in failed. Check the Google provider settings in Supabase.", "error");
+      setAuthBusy(false);
+    }
+  }
+
+  async function resendConfirmation() {
+    if (!supabaseClient) {
+      setAuthMessage("Supabase is not configured yet.", "error");
+      return;
+    }
+
+    const email = $("emailInput").value.trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      setAuthMessage("Enter the account email first.", "error");
+      $("emailInput").focus();
+      return;
+    }
+
+    setAuthBusy(true);
+    setAuthMessage("Sending a new confirmation email…");
+
+    try {
+      const { error } = await supabaseClient.auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo: redirectUrl() }
+      });
+      if (error) throw error;
+      setAuthMessage("A new confirmation email was requested. Check your inbox.", "success");
+    } catch (error) {
+      console.error("Confirmation resend error:", error);
+      setAuthMessage(error?.message || "Could not resend the confirmation email.", "error");
+    } finally {
       setAuthBusy(false);
     }
   }
@@ -1040,6 +1101,7 @@
   $("authCancel").addEventListener("click", closeAuth);
   $("googleButton").addEventListener("click", signInWithGoogle);
   $("forgotPassword").addEventListener("click", forgotPassword);
+  $("resendConfirmation").addEventListener("click", resendConfirmation);
   $("libraryButton").addEventListener("click", openLibrary);
   $("libraryClose").addEventListener("click", closeLibrary);
   $("libraryModal").addEventListener("click", e => { if(e.target === $("libraryModal")) closeLibrary(); });
