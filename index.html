@@ -179,6 +179,16 @@
   </div>
 </div>
 
+<div id="favoritesModal" class="modal-backdrop hidden">
+  <div class="modal" style="width:min(760px,100%)">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px">
+      <div><h2 style="margin:0">Favorite Books</h2><p style="margin:5px 0 0">Books you saved as favorites.</p></div>
+      <button class="btn icon" id="favoritesClose" type="button" aria-label="Close">×</button>
+    </div>
+    <div id="favoritesLibrary" class="book-library"></div>
+  </div>
+</div>
+
 <div id="libraryModal" class="modal-backdrop hidden">
   <div class="modal" style="width:min(760px,100%)">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px">
@@ -589,8 +599,35 @@
   }
 
 
-  async function loadFavorites(){state.favorites=new Set();if(!state.user)return;const {data,error}=await supabaseClient.from("book_favorites").select("book_id").eq("user_id",state.user.id);if(!error)(data||[]).forEach(x=>state.favorites.add(x.book_id))}
-  async function toggleFavorite(bookId){if(!state.user){openAuth("login");return}if(state.favorites.has(bookId)){const {error}=await supabaseClient.from("book_favorites").delete().eq("user_id",state.user.id).eq("book_id",bookId);if(error){toast(error.message);return}state.favorites.delete(bookId)}else{const {error}=await supabaseClient.from("book_favorites").insert({user_id:state.user.id,book_id:bookId});if(error){toast(error.message);return}state.favorites.add(bookId)}renderBookLibrary();await loadPublicBooks($("publicSearch").value)}
+  async function loadFavorites(){state.favorites=new Set();if(!state.user)return;const {data,error}=await supabaseClient.from("book_favorites").select("book_id").eq("user_id",state.user.id);if(error){console.error(error);return}(data||[]).forEach(x=>state.favorites.add(x.book_id))}
+  async function toggleFavorite(bookId){if(!state.user){openAuth("login");return}try{if(state.favorites.has(bookId)){const {error}=await supabaseClient.from("book_favorites").delete().eq("user_id",state.user.id).eq("book_id",bookId);if(error)throw error;state.favorites.delete(bookId);toast("Removed from favorites.")}else{const {error}=await supabaseClient.from("book_favorites").insert({user_id:state.user.id,book_id:bookId});if(error)throw error;state.favorites.add(bookId);toast("Added to favorites.")}renderBookLibrary();renderFavoritesLibrary();await loadPublicBooks($("publicSearch").value)}catch(error){console.error(error);toast(error.message||"Could not update favorite.")}}
+  async function loadFavoriteBooks(){
+    const panel=$("favoritesLibrary");if(!panel)return;
+    if(!state.user){panel.innerHTML='<div class="empty" style="padding:30px">Log in to see your favorites.</div>';return}
+    panel.innerHTML='<div class="discover-empty" style="grid-column:1/-1">Loading favorites…</div>';
+    try{
+      const ids=[...state.favorites];
+      if(!ids.length){panel.innerHTML='<div class="empty" style="padding:30px">No favorite books yet.</div>';return}
+      const {data,error}=await supabaseClient.from("books").select("id,title,cover_path,created_at,is_public,author,description").in("id",ids);
+      if(error)throw error;
+      const books=data||[];
+      panel.innerHTML="";
+      books.forEach(book=>{
+        const tile=document.createElement("div");tile.className="book-tile";
+        const cover=document.createElement("div");
+        if(book.cover_path){const img=document.createElement("img");img.className="book-tile-cover";img.alt=(book.title||"Book")+" cover";cover.appendChild(img);supabaseClient.storage.from("photos").createSignedUrl(book.cover_path,3600).then(x=>{if(!x.error)img.src=x.data.signedUrl}).catch(()=>{})}else{cover.className="book-tile-empty";cover.textContent="No cover"}
+        const title=document.createElement("div");title.className="book-tile-title";title.textContent=book.title||"Untitled";
+        const meta=document.createElement("div");meta.className="book-tile-meta";meta.textContent=book.is_public?"Published":"Private";
+        const actions=document.createElement("div");actions.className="library-actions";
+        const open=document.createElement("button");open.className="btn";open.type="button";open.textContent=book.user_id===state.user.id?"Open":"Read";open.onclick=async()=>{if(book.user_id===state.user.id){closeFavorites();await selectBook(book.id)}else{closeFavorites();await openPublicBook(book.id)}};
+        const fav=document.createElement("button");fav.className="btn";fav.type="button";fav.textContent="♥";fav.title="Remove favorite";fav.onclick=()=>toggleFavorite(book.id);
+        actions.append(open,fav);tile.append(cover,title,meta,actions);panel.appendChild(tile);
+      });
+    }catch(error){console.error(error);panel.innerHTML='<div class="empty" style="padding:30px">Could not load favorites.</div>';toast(error.message||"Could not load favorites.")}
+  }
+  function openFavorites(){if(!state.user){openAuth("login");return}renderFavoritesLibrary();$("favoritesModal").classList.remove("hidden");loadFavoriteBooks()}
+  function renderFavoritesLibrary(){const panel=$("favoritesLibrary");if(!panel)return;if(!state.user){panel.innerHTML='<div class="empty" style="padding:30px">Log in to see your favorites.</div>';return}if(!state.favorites.size){panel.innerHTML='<div class="empty" style="padding:30px">No favorite books yet.</div>';return}}
+  function closeFavorites(){$("favoritesModal").classList.add("hidden")}
   async function loadBookmarks(){state.bookmarks=[];if(!state.user||!state.currentBookId)return;const {data,error}=await supabaseClient.from("bookmarks").select("id,book_id,photo_id,page_index,created_at").eq("user_id",state.user.id).eq("book_id",state.currentBookId).order("created_at",{ascending:false});if(!error)state.bookmarks=data||[]}
   function isCurrentPageBookmarked(){const page=state.readerPages[state.readerIndex];return !!(page&&page.photo&&state.bookmarks.some(b=>b.photo_id===page.photo.id))}
   async function toggleReaderBookmark(){if(!state.user||state.readerMode!=="private")return;const page=state.readerPages[state.readerIndex];if(!page||!page.photo)return;const existing=state.bookmarks.find(b=>b.photo_id===page.photo.id);if(existing){const {error}=await supabaseClient.from("bookmarks").delete().eq("id",existing.id).eq("user_id",state.user.id);if(error){toast(error.message);return}state.bookmarks=state.bookmarks.filter(b=>b.id!==existing.id);toast("Bookmark removed")}else{const {data,error}=await supabaseClient.from("bookmarks").insert({user_id:state.user.id,book_id:state.currentBookId,photo_id:page.photo.id,page_index:state.readerIndex}).select().single();if(error){toast(error.message);return}state.bookmarks.unshift(data);toast("Page bookmarked")}updateReaderBookmark()}
@@ -723,9 +760,10 @@
 
   async function saveCaption(photo, value) {
     const caption = value.trim().slice(0, 500);
-    photo.caption = caption;
     const { error } = await supabaseClient.from("photos").update({ caption }).eq("id", photo.id).eq("user_id", state.user.id);
-    if (error) { console.error(error); toast("Could not save caption."); }
+    if (error) { console.error(error); toast(error.message||"Could not save caption."); return false; }
+    photo.caption = caption;
+    return true;
   }
 
   function updateCount() {
@@ -965,10 +1003,10 @@
   }
 
   function openProfile(){if(!state.user){openAuth("login");return}const u=state.user;$("profileEmail").value=u.email||"";$("profileName").value=u.user_metadata?.display_name||u.user_metadata?.full_name||"";$("profileStatus").textContent="Signed in";$("profileModal").classList.remove("hidden")}
-  async function saveProfile(){if(!state.user)return;const name=$("profileName").value.trim().slice(0,80);const {data,error}=await supabaseClient.auth.updateUser({data:{display_name:name}});if(error){$("profileStatus").textContent=error.message;return}state.user=data.user||state.user;$("profileStatus").textContent="Profile saved.";updateHeader()}
+  async function saveProfile(){if(!state.user)return;const name=$("profileName").value.trim().slice(0,80);try{const {data,error}=await supabaseClient.auth.updateUser({data:{display_name:name}});if(error)throw error;state.user=data.user||state.user;state.profileName=name;$("profileStatus").textContent="Profile saved.";updateHeader();toast("Profile saved.")}catch(error){console.error(error);$("profileStatus").textContent=error.message||"Could not save profile.";toast(error.message||"Could not save profile.")}}
   function openPhotoDetails(id){const photo=state.photos.find(p=>p.id===id);if(!photo)return;state.detailPhotoId=id;const book=state.books.find(b=>b.id===state.currentBookId);const section=state.sections.find(s=>s.id===photo.section_id);$("photoDetailsFilename").value=photo.filename||"";$("photoDetailsBook").value=book?.title||"Current book";$("photoDetailsSection").value=section?.name||"All sections";$("photoDetailsCaption").value=photo.caption||"";$("photoDetailsMeta").textContent="Added "+new Date(photo.created_at).toLocaleString()+" · position "+(photo.position+1);$("photoDetailsModal").classList.remove("hidden")}
   function closePhotoDetails(){$("photoDetailsModal").classList.add("hidden");state.detailPhotoId=null}
-  async function savePhotoDetails(){const photo=state.photos.find(p=>p.id===state.detailPhotoId);if(!photo||!state.user)return;await saveCaption(photo,$("photoDetailsCaption").value);$("photoDetailsModal").classList.add("hidden");state.detailPhotoId=null;render()}
+  async function savePhotoDetails(){const photo=state.photos.find(p=>p.id===state.detailPhotoId);if(!photo||!state.user)return;const saved=await saveCaption(photo,$("photoDetailsCaption").value);if(!saved)return;closePhotoDetails();render();toast("Caption saved.")}
   async function deletePhotoFromDetails(){const id=state.detailPhotoId;if(!id)return;closePhotoDetails();await deletePhoto(id)}
   async function logout() {
     if (!supabaseClient) return;
@@ -1092,7 +1130,7 @@
     }
   }
 
-  async function downloadPhoto(photo){try{const {data,error}=await supabaseClient.storage.from("photos").download(photo.storage_path);if(error)throw error;const url=URL.createObjectURL(data);const a=document.createElement("a");a.href=url;a.download=photo.filename||"photo";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(error){toast(error.message||"Could not download photo")}}
+  async function downloadPhoto(photo){if(!photo||!state.user)return;try{const {data,error}=await supabaseClient.storage.from("photos").download(photo.storage_path);if(error)throw error;const url=URL.createObjectURL(data);const a=document.createElement("a");a.href=url;a.download=photo.filename||"photo";a.rel="noopener";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);toast("Download started.")}catch(error){console.error(error);toast(error.message||"Could not download photo.")}}
   async function deletePhoto(id) {
     const photo = state.photos.find(p => p.id === id);
     if (!photo) return;
