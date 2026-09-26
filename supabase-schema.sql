@@ -25,26 +25,14 @@ drop policy if exists "Users can insert their own photos" on public.photos;
 create policy "Users can insert their own photos"
 on public.photos for insert
 to authenticated
-with check (
-  auth.uid() = user_id
-  and exists (select 1 from public.books b where b.id = book_id and b.user_id = auth.uid())
-  and (section_id is null or exists (
-    select 1 from public.sections s where s.id = section_id and s.book_id = book_id
-  ))
-);
+with check (auth.uid() = user_id);
 
 drop policy if exists "Users can update their own photos" on public.photos;
 create policy "Users can update their own photos"
 on public.photos for update
 to authenticated
 using (auth.uid() = user_id)
-with check (
-  auth.uid() = user_id
-  and exists (select 1 from public.books b where b.id = book_id and b.user_id = auth.uid())
-  and (section_id is null or exists (
-    select 1 from public.sections s where s.id = section_id and s.book_id = book_id
-  ))
-);
+with check (auth.uid() = user_id);
 
 drop policy if exists "Users can delete their own photos" on public.photos;
 create policy "Users can delete their own photos"
@@ -157,3 +145,31 @@ update public.photos p set book_id=b.id from public.books b where p.user_id=b.us
 -- After the migration above, every photo must belong to a book.
 alter table public.photos alter column book_id set not null;
 create index if not exists photos_book_position_idx on public.photos(book_id,position);
+
+
+-- V1.4: now that books/sections exist, enforce that each photo stays inside
+-- a book owned by the same user and that its section belongs to that book.
+drop policy if exists "Users can insert their own photos" on public.photos;
+create policy "Users can insert their own photos"
+on public.photos for insert
+to authenticated
+with check (
+  auth.uid() = user_id
+  and exists (select 1 from public.books b where b.id = book_id and b.user_id = auth.uid())
+  and (section_id is null or exists (
+    select 1 from public.sections s where s.id = section_id and s.book_id = book_id
+  ))
+);
+
+drop policy if exists "Users can update their own photos" on public.photos;
+create policy "Users can update their own photos"
+on public.photos for update
+to authenticated
+using (auth.uid() = user_id)
+with check (
+  auth.uid() = user_id
+  and exists (select 1 from public.books b where b.id = book_id and b.user_id = auth.uid())
+  and (section_id is null or exists (
+    select 1 from public.sections s where s.id = section_id and s.book_id = book_id
+  ))
+);
