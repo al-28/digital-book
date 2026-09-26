@@ -419,7 +419,7 @@
     await renderPublicLibrary();
   }
 
-  async async function renderPublicLibrary(){
+  async function renderPublicLibrary(){
     const panel=$("publicLibrary");if(!panel)return;panel.innerHTML="";
     if(!state.publicBooks.length){panel.innerHTML='<div class="discover-empty" style="grid-column:1/-1"><strong>No public books yet.</strong><div style="margin-top:7px">When someone publishes a book, it will appear here.</div></div>';return}
     for(const book of state.publicBooks){
