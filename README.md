@@ -184,3 +184,11 @@ Run the updated `supabase-schema.sql` in the Supabase SQL Editor. The migration 
 The existing `photos` bucket stays private. Only files belonging to a published book are readable by public readers through the new RLS policies.
 
 This follows Supabase's RLS model: public data should have an explicit `SELECT` policy, and private Storage files require `SELECT` permission for signed URLs.
+
+## V1.8 reliability repair
+
+The browser now keeps the private account/book flow working even if the optional public-library migration has not yet been applied. Publishing and public book details require the V1.7/V1.8 schema.
+
+For an existing Supabase project, run **supabase-repair.sql once** in Supabase SQL Editor. It preserves existing books/photos/sections and repairs the book relationships, RLS policies, Storage policies, public publishing fields, and published cover access.
+
+The repair script also makes published cover files readable through signed URLs while keeping the `photos` bucket private. Supabase documents that private-bucket signed URLs require `storage.objects` SELECT access, and that `upsert` uploads need SELECT and UPDATE access. See the Supabase Storage access-control documentation.
