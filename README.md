@@ -96,3 +96,54 @@ V1.1 adds an editable persistent book title, per-photo captions, and a full-scre
 - Backup/export
 - PWA installation
 - Better touch-based reordering
+
+## V1.4 — reliability, book library, and Google login
+
+V1.4 fixes several issues discovered during a full project audit:
+
+- Restores the Reading Mode HTML that the V1.3 JavaScript expected.
+- Fixes JavaScript blockers that could prevent the app from starting.
+- Makes the **Cancel** button in authentication reliably close and reset the dialog.
+- Adds **Continue with Google** through Supabase Auth.
+- Adds **Forgot your password?** recovery.
+- Adds a **My Books** library so every saved book can be reopened.
+- Remembers the last selected book on each device.
+- Keeps photos attached to their specific book.
+- Prevents photo records from being assigned to another user's book or to a section belonging to another book.
+- Fixes section-specific reordering so it does not renumber unrelated sections.
+- Hardens logged-out controls and logout/auth state transitions.
+
+### Where is an uploaded book?
+
+The website itself does not store your books in the browser or inside GitHub. After you upload photos, the app stores:
+
+- the book and its title/cover in Supabase Postgres (`books`)
+- the photo metadata/order in Supabase Postgres (`photos`)
+- the original image files in the private Supabase Storage `photos` bucket
+
+When you sign in again, use **My Books** or the book selector at the top to reopen the book. The same account can access the same books from another phone or computer. Private files are displayed through temporary signed URLs rather than public image URLs.
+
+### Google login setup
+
+The code now includes the Google sign-in button, but Google must also be enabled in your Supabase project.
+
+1. In Supabase, open **Authentication → Providers → Google** and enable Google.
+2. Create a **Web application** OAuth client in Google Cloud.
+3. Add your deployed site's origin to Google's authorized JavaScript origins.
+4. Add the Supabase callback URL shown on the Supabase Google provider page to Google's authorized redirect URIs.
+5. In Supabase **Authentication → URL Configuration**, set your production Site URL and add the exact site URL as an allowed redirect URL.
+6. Put the Google Client ID and Client Secret into the Supabase Google provider settings.
+
+The frontend uses the current page as the OAuth redirect target, so the deployed GitHub Pages URL must be allowed by Supabase.
+
+### Password recovery
+
+The **Forgot your password?** button sends a Supabase recovery email and returns the user to the app. Supabase must have the production site URL/redirect URL configured, and email delivery must be enabled.
+
+### Security model
+
+Keep the Supabase publishable/anon key in the browser only. Never put a Supabase service-role/secret key in `index.html`. The database and storage RLS policies are responsible for restricting each user's books, photos, and files.
+
+### Deployment
+
+This project is a static frontend, so GitHub Pages is the simplest deployment target. Fly.io can host static files too, but would add a container/web-server layer that this project does not currently need.
