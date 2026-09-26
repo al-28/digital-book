@@ -25,14 +25,26 @@ drop policy if exists "Users can insert their own photos" on public.photos;
 create policy "Users can insert their own photos"
 on public.photos for insert
 to authenticated
-with check (auth.uid() = user_id);
+with check (
+  auth.uid() = user_id
+  and exists (select 1 from public.books b where b.id = book_id and b.user_id = auth.uid())
+  and (section_id is null or exists (
+    select 1 from public.sections s where s.id = section_id and s.book_id = book_id
+  ))
+);
 
 drop policy if exists "Users can update their own photos" on public.photos;
 create policy "Users can update their own photos"
 on public.photos for update
 to authenticated
 using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
+with check (
+  auth.uid() = user_id
+  and exists (select 1 from public.books b where b.id = book_id and b.user_id = auth.uid())
+  and (section_id is null or exists (
+    select 1 from public.sections s where s.id = section_id and s.book_id = book_id
+  ))
+);
 
 drop policy if exists "Users can delete their own photos" on public.photos;
 create policy "Users can delete their own photos"
@@ -142,4 +154,6 @@ insert into public.books(user_id,title)
 select distinct p.user_id,'My Book' from public.photos p
 where not exists(select 1 from public.books b where b.user_id=p.user_id);
 update public.photos p set book_id=b.id from public.books b where p.user_id=b.user_id and p.book_id is null;
+-- After the migration above, every photo must belong to a book.
+alter table public.photos alter column book_id set not null;
 create index if not exists photos_book_position_idx on public.photos(book_id,position);
