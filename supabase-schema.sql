@@ -227,3 +227,17 @@ using (
       and b.is_public = true
   )
 );
+
+
+-- Public readers can see section/chapter names for published books.
+drop policy if exists "Anyone can read sections from published books" on public.sections;
+create policy "Anyone can read sections from published books"
+on public.sections for select
+to anon, authenticated
+using (
+  exists (
+    select 1 from public.books b
+    where b.id = sections.book_id
+      and b.is_public = true
+  )
+);
