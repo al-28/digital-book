@@ -82,6 +82,7 @@
     .toc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.toc-item{display:block;width:100%;text-align:left;border:0;background:transparent;color:#ddd;padding:12px;border-radius:10px}.toc-item:hover{background:#242428}.toc-item.active{background:#fff;color:#111}
     @media(max-width:650px){.reader-top{padding:0 12px}.reader-top .btn{padding:8px 11px}.reader-title{font-size:14px}.reader-page{padding:12px 14px}.reader-sheet{min-height:72vh;padding:24px 18px;border-radius:3px}.reader-nav{width:42px;height:42px;font-size:25px;background:rgba(20,20,22,.8)}.reader-prev{left:8px}.reader-next{right:8px}.reader-footer{height:44px}.reader-footer span:last-child{display:none}}
     .account{font-size:12px;color:var(--muted);max-width:150px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .auth-provider{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px}.auth-divider{display:flex;align-items:center;gap:10px;color:#666;font-size:12px;margin:14px 0}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:#303034;flex:1}.auth-link{display:block;border:0;background:transparent;color:#aaa;padding:8px;width:100%;text-align:center;font-size:13px}.auth-link:hover{color:#fff}.book-library{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}.book-tile{border:1px solid #303034;background:#111113;color:#fff;border-radius:16px;padding:10px;text-align:left}.book-tile:hover{background:#19191c;border-color:#555}.book-tile-cover{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:11px;background:#202024;display:block}.book-tile-empty{width:100%;aspect-ratio:4/3;border-radius:11px;background:#202024;display:grid;place-items:center;color:#777}.book-tile-title{font-weight:650;margin:10px 3px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.book-tile-meta{font-size:12px;color:#777;margin:0 3px}
     .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#34c759;margin-right:5px}
     @media(max-width:650px){
       .topbar{height:64px;padding:0 14px}.brand-mark{width:32px;height:32px}.brand-meta{display:none}.brand-title{font-size:14px}
@@ -104,7 +105,7 @@
     </div>
     <div class="actions">
       <div class="account" id="accountEmail"></div>
-      <button class="btn" id="authButton">Log in</button>
+      <button class="btn" id="libraryButton">My Books</button><button class="btn" id="authButton">Log in</button>
       <button class="btn" id="readButton">Read</button><button class="btn" id="coverButton">Cover</button>
       <button class="btn primary" id="headerUpload">＋ Add Photos</button>
       <input id="coverInput" type="file" accept="image/*" class="hidden">
@@ -150,7 +151,39 @@
       <button class="btn" id="authCancel">Cancel</button>
       <button class="btn primary" id="authSubmit">Log in</button>
     </div>
-    <button class="btn" id="authSwitch" style="width:100%;margin-top:10px">Create an account instead</button>
+    <div class="auth-divider">or</div>
+    <button class="btn auth-provider" id="googleButton">Continue with Google</button>
+    <button class="auth-link" id="forgotPassword">Forgot your password?</button>
+    <button class="btn" id="authSwitch" style="width:100%;margin-top:4px">Create an account instead</button>
+  </div>
+</div>
+
+<div id="libraryModal" class="modal-backdrop hidden">
+  <div class="modal" style="width:min(760px,100%)">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px">
+      <div><h2 style="margin:0">My Books</h2><p style="margin:5px 0 0">Every book you create is saved to your account and can be reopened from any signed-in device.</p></div>
+      <button class="btn icon" id="libraryClose" aria-label="Close">×</button>
+    </div>
+    <div id="bookLibrary" class="book-library"></div>
+  </div>
+</div>
+
+<div id="reader" class="reader hidden" aria-modal="true" role="dialog">
+  <div class="reader-top">
+    <div class="reader-title" id="readerTitle">Reading</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" id="readerToc">Contents</button>
+      <button class="btn" id="readerClose">Close</button>
+    </div>
+  </div>
+  <div id="readerPage" class="reader-page"></div>
+  <button class="reader-nav reader-prev" id="readerPrev" aria-label="Previous page">‹</button>
+  <button class="reader-nav reader-next" id="readerNext" aria-label="Next page">›</button>
+  <div class="reader-footer"><span id="readerPageNumber">1 / 1</span><span>← / → to turn pages · Esc to close</span></div>
+  <div id="readerTocPanel" class="reader-toc hidden">
+    <div class="toc-head"><strong>Contents</strong><button class="btn icon" id="readerTocClose" aria-label="Close contents">×</button></div>
+    <button class="toc-item" id="tocCover">Cover</button>
+    <div id="tocSections"></div>
   </div>
 </div>
 
@@ -197,6 +230,7 @@
     bookTitle: "My Book",
     authMode: "login",
     viewerIndex: -1,
+    recoveryMode: false,
     readerIndex: 0,
     readerPages: [],
     draggingId: null
@@ -243,15 +277,68 @@
   }
 
   async function loadBooks() {
-    const {data,error}=await supabaseClient.from("books").select("id,title,cover_path").eq("user_id",state.user.id).order("created_at");
+    if (!state.user) return;
+    const {data,error}=await supabaseClient.from("books").select("id,title,cover_path,created_at").eq("user_id",state.user.id).order("created_at");
     if(error)throw error;
     state.books=data||[];
-    if(!state.books.length){const x=await supabaseClient.from("books").insert({user_id:state.user.id,title:"My Book"}).select().single();if(x.error)throw x.error;state.books=[x.data]}
+    if(!state.books.length){
+      const x=await supabaseClient.from("books").insert({user_id:state.user.id,title:"My Book"}).select().single();
+      if(x.error)throw x.error;
+      state.books=[x.data];
+    }
+    const savedId=localStorage.getItem("digital-book:last-book:"+state.user.id);
+    if(savedId && state.books.some(b=>b.id===savedId)) state.currentBookId=savedId;
     if(!state.currentBookId||!state.books.some(b=>b.id===state.currentBookId))state.currentBookId=state.books[0].id;
-    const b=state.books.find(x=>x.id===state.currentBookId);state.bookTitle=b.title;updateBookTitle();renderBookSelector();await loadSections();await renderCover();
+    localStorage.setItem("digital-book:last-book:"+state.user.id,state.currentBookId);
+    const b=state.books.find(x=>x.id===state.currentBookId);
+    state.bookTitle=b.title;
+    updateBookTitle();
+    renderBookSelector();
+    await loadSections();
+    await renderCover();
+    renderBookLibrary();
   }
-  function renderBookSelector(){const s=$("bookSelect");s.innerHTML="";state.books.forEach(b=>{const o=document.createElement("option");o.value=b.id;o.textContent=b.title;s.appendChild(o)});s.value=state.currentBookId}
-  async function selectBook(id){state.currentBookId=id;state.currentSectionId=null;await loadBooks();await loadPhotos()}
+  function renderBookSelector(){
+    const s=$("bookSelect");
+    s.innerHTML="";
+    state.books.forEach(b=>{const o=document.createElement("option");o.value=b.id;o.textContent=b.title;s.appendChild(o)});
+    s.value=state.currentBookId||"";
+  }
+  async function selectBook(id){
+    if(!id||!state.user)return;
+    state.currentBookId=id;
+    state.currentSectionId=null;
+    localStorage.setItem("digital-book:last-book:"+state.user.id,id);
+    await loadBooks();
+    await loadPhotos();
+  }
+  function openLibrary(){if(!state.user){openAuth("login");return;}renderBookLibrary();$("libraryModal").classList.remove("hidden")}
+  function closeLibrary(){$("libraryModal").classList.add("hidden")}
+  function renderBookLibrary(){
+    const panel=$("bookLibrary");
+    if(!panel)return;
+    panel.innerHTML="";
+    state.books.forEach(book=>{
+      const tile=document.createElement("button");
+      tile.className="book-tile";
+      const cover=document.createElement("div");
+      if(book.cover_path){
+        const img=document.createElement("img");
+        img.className="book-tile-cover";
+        img.alt=book.title+" cover";
+        supabaseClient.storage.from("photos").createSignedUrl(book.cover_path,3600).then(x=>{if(!x.error)img.src=x.data.signedUrl});
+        cover.appendChild(img);
+      }else{
+        cover.className="book-tile-empty";
+        cover.textContent="No cover";
+      }
+      const title=document.createElement("div");title.className="book-tile-title";title.textContent=book.title;
+      const meta=document.createElement("div");meta.className="book-tile-meta";meta.textContent=book.id===state.currentBookId?"Currently open":"Open this book";
+      tile.append(cover,title,meta);
+      tile.addEventListener("click",async()=>{closeLibrary();await selectBook(book.id);window.scrollTo({top:0,behavior:"smooth"});toast("Opened “"+book.title+"”.")});
+      panel.appendChild(tile);
+    });
+  }
   async function createBook(){const title=prompt("New book name","My New Book");if(!title?.trim())return;const x=await supabaseClient.from("books").insert({user_id:state.user.id,title:title.trim().slice(0,120)}).select().single();if(x.error){toast(x.error.message);return}state.currentBookId=x.data.id;await loadBooks();await loadPhotos();toast("Book created.")}
   async function loadSections(){const x=await supabaseClient.from("sections").select("id,name,position").eq("book_id",state.currentBookId).order("position");if(x.error)throw x.error;state.sections=x.data||[];renderSectionSelector()}
   function renderSectionSelector(){const s=$("sectionSelect");s.innerHTML='<option value="">All sections</option>';state.sections.forEach(x=>{const o=document.createElement("option");o.value=x.id;o.textContent=x.name;s.appendChild(o)});s.value=state.currentSectionId||""}
@@ -408,49 +495,48 @@
 
   function closeAuth() {
     $("authModal").classList.add("hidden");
+    $("emailInput").value="";
+    $("passwordInput").value="";
   }
 
+  function redirectUrl(){return window.location.href.split("#")[0];}
+
   async function authenticate() {
-    if (!supabaseClient) {
-      toast("Add your Supabase credentials to index.html first.");
-      return;
-    }
+    if (!supabaseClient) { toast("Add your Supabase credentials to index.html first."); return; }
+    const email=$("emailInput").value.trim();
+    const password=$("passwordInput").value;
+    if(!email||!password){toast("Enter your email and password.");return;}
+    $("authSubmit").disabled=true;
+    try{
+      const result=state.authMode==="login"
+        ? await supabaseClient.auth.signInWithPassword({email,password})
+        : await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:redirectUrl()}});
+      if(result.error)throw result.error;
+      toast(state.authMode==="login"?"You're logged in.":"Account created. Check your email if confirmation is enabled.");
+      closeAuth();
+    }catch(error){toast(error.message||"Authentication failed.");}
+    finally{$("authSubmit").disabled=false;}
+  }
 
-    const email = $("emailInput").value.trim();
-    const password = $("passwordInput").value;
+  async function signInWithGoogle(){
+    if(!supabaseClient){toast("Add your Supabase credentials to index.html first.");return;}
+    const {error}=await supabaseClient.auth.signInWithOAuth({provider:"google",options:{redirectTo:redirectUrl()}});
+    if(error)toast(error.message||"Google sign-in failed.");
+  }
 
-    if (!email || !password) {
-      toast("Enter your email and password.");
-      return;
-    }
-
-    $("authSubmit").disabled = true;
-
-    try {
-      const result = state.authMode === "login"
-        ? await supabaseClient.auth.signInWithPassword({ email, password })
-        : await supabaseClient.auth.signUp({ email, password });
-
-      if (result.error) throw result.error;
-
-      if (state.authMode === "login") {
-        toast("You're logged in.");
-        closeAuth();
-      } else {
-        toast("Account created. Check your email if confirmation is enabled.");
-        closeAuth();
-      }
-    } catch (error) {
-      toast(error.message || "Authentication failed.");
-    } finally {
-      $("authSubmit").disabled = false;
-    }
+  async function forgotPassword(){
+    if(!supabaseClient){toast("Add your Supabase credentials to index.html first.");return;}
+    const email=$("emailInput").value.trim();
+    if(!email){toast("Enter your email first.");$("emailInput").focus();return;}
+    const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:redirectUrl()});
+    if(error){toast(error.message||"Could not send reset email.");return;}
+    toast("If that email can reset a password, a reset link has been sent.");
   }
 
   async function logout() {
     if (!supabaseClient) return;
-    const { error } = await supabaseClient.auth.signOut();
-    if (error) toast(error.message);
+    const {error}=await supabaseClient.auth.signOut();
+    if(error)toast(error.message);
   }
 
   function extensionFor(file) {
@@ -600,9 +686,7 @@
   }
 
   async function normalizePositions() {
-    const updates = state.photos
-      .filter(p => p.id)
-      .map((p, index) => ({ id: p.id, user_id: state.user.id, position: index }));
+    const updates = state.photos.filter(p => p.id).map(p => ({ id:p.id, user_id:state.user.id, position:p.position }));
 
     for (const row of updates) {
       const { error } = await supabaseClient
@@ -626,7 +710,12 @@
     const [moved] = state.photos.splice(from, 1);
     state.photos.splice(to, 0, moved);
 
-    state.photos.forEach((photo, index) => photo.position = index);
+    if (state.currentSectionId) {
+      const slots=[...state.photos].map(p=>p.position).sort((a,b)=>a-b);
+      state.photos.forEach((photo,index)=>photo.position=slots[index] ?? index);
+    } else {
+      state.photos.forEach((photo,index)=>photo.position=index);
+    }
     render();
 
     try {
@@ -755,17 +844,34 @@
     render();
     if (state.user) await loadBooks();
 
-    supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-      state.user = session?.user || null;
+      supabaseClient.auth.onAuthStateChange((event, session) => {
+      state.user=session?.user||null;
       updateHeader();
-      await loadBooks();
-      await loadPhotos();
+      setTimeout(async()=>{
+        try{
+          if(state.user){
+            await loadBooks();
+            await loadPhotos();
+          }else{
+            state.books=[];state.sections=[];state.photos=[];state.currentBookId=null;state.currentSectionId=null;state.bookTitle="My Book";
+            renderBookSelector();renderSectionSelector();render();
+            closeLibrary();closeReader();closeViewer();
+          }
+          if(event==="PASSWORD_RECOVERY"){
+            const newPassword=prompt("Choose a new password (at least 6 characters):");
+            if(newPassword){
+              const {error}=await supabaseClient.auth.updateUser({password:newPassword});
+              toast(error?error.message:"Password updated.");
+            }
+          }
+        }catch(error){console.error(error);toast(error.message||"Could not refresh your account.");}
+      },0);
     });
 
     if (state.user) await loadPhotos();
   }
 
-  $("chooseButton").addEventListener("click", () => $("fileInput").click());
+  $("chooseButton").addEventListener("click", () => {if(!state.user){openAuth("login");return;}$("fileInput").click();});
   $("headerUpload").addEventListener("click", () => {
     if (!state.user) {
       openAuth("login");
@@ -780,11 +886,11 @@
   });
 
   $("bookSelect").addEventListener("change",e=>selectBook(e.target.value));
-  $("newBookButton").addEventListener("click",createBook);
-  $("newSectionButton").addEventListener("click",createSection);
-  $("sectionSelect").addEventListener("change",async e=>{state.currentSectionId=e.target.value||null;await loadPhotos()});
-  $("coverButton").addEventListener("click",()=>$("coverInput").click());
-  $("coverInput").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;const ext=file.name.split(".").pop()||"jpg";const path=state.user.id+"/covers/"+state.currentBookId+"."+ext;const up=await supabaseClient.storage.from("photos").upload(path,file,{upsert:true,contentType:file.type});if(up.error){toast(up.error.message);return}const x=await supabaseClient.from("books").update({cover_path:path}).eq("id",state.currentBookId).eq("user_id",state.user.id);if(x.error){toast(x.error.message);return}state.books.find(b=>b.id===state.currentBookId).cover_path=path;await renderCover();toast("Cover saved.");e.target.value=""});
+  $("newBookButton").addEventListener("click",()=>{if(!state.user){openAuth("login");return;}createBook()});
+  $("newSectionButton").addEventListener("click",()=>{if(!state.user){openAuth("login");return;}createSection()});
+  $("sectionSelect").addEventListener("change",async e=>{if(!state.user)return;state.currentSectionId=e.target.value||null;await loadPhotos()});
+  $("coverButton").addEventListener("click",()=>{if(!state.user){openAuth("login");return;}$("coverInput").click()});
+  $("coverInput").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;if(!state.user){toast("Log in first.");e.target.value="";return;}const ext=file.name.split(".").pop()||"jpg";const path=state.user.id+"/covers/"+state.currentBookId+"."+ext;const up=await supabaseClient.storage.from("photos").upload(path,file,{upsert:true,contentType:file.type});if(up.error){toast(up.error.message);return}const x=await supabaseClient.from("books").update({cover_path:path}).eq("id",state.currentBookId).eq("user_id",state.user.id);if(x.error){toast(x.error.message);return}state.books.find(b=>b.id===state.currentBookId).cover_path=path;await renderCover();toast("Cover saved.");e.target.value=""});
   $("bookTitle").addEventListener("blur", saveBookTitle);
   $("bookTitle").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } });
 
@@ -822,7 +928,13 @@
   });
 
   $("authCancel").addEventListener("click", closeAuth);
+  $("googleButton").addEventListener("click", signInWithGoogle);
+  $("forgotPassword").addEventListener("click", forgotPassword);
+  $("libraryButton").addEventListener("click", openLibrary);
+  $("libraryClose").addEventListener("click", closeLibrary);
+  $("libraryModal").addEventListener("click", e => { if(e.target===$("libraryModal")) closeLibrary(); });
   $("authSubmit").addEventListener("click", authenticate);
+  $("emailInput").addEventListener("keydown", e => { if(e.key==="Enter") authenticate(); });
   $("authSwitch").addEventListener("click", () => {
     openAuth(state.authMode === "login" ? "signup" : "login");
   });
@@ -831,9 +943,7 @@
     if (e.target === $("authModal")) closeAuth();
   });
 
-  $("passwordInput").addEventListener("keydown", e => {
-    if (e.key === "Enter") authenticate();
-  });
+  $("passwordInput").addEventListener("keydown", e => { if(e.key==="Enter") authenticate(); });
 
   const dropZone = $("dropZone");
 
