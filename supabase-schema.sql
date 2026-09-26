@@ -8,6 +8,7 @@ create table if not exists public.photos (
   user_id uuid not null references auth.users(id) on delete cascade,
   storage_path text not null unique,
   filename text not null,
+  caption text not null default '',
   position bigint not null default 0,
   created_at timestamptz not null default now()
 );
@@ -88,3 +89,21 @@ on public.photos(user_id, position);
 
 create index if not exists photos_user_created_idx
 on public.photos(user_id, created_at);
+
+
+create table if not exists public.book_settings (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  title text not null default 'My Book',
+  updated_at timestamptz not null default now()
+);
+
+alter table public.book_settings enable row level security;
+
+drop policy if exists "Users can read their own book settings" on public.book_settings;
+create policy "Users can read their own book settings" on public.book_settings for select to authenticated using (auth.uid() = user_id);
+
+drop policy if exists "Users can insert their own book settings" on public.book_settings;
+create policy "Users can insert their own book settings" on public.book_settings for insert to authenticated with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update their own book settings" on public.book_settings;
+create policy "Users can update their own book settings" on public.book_settings for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
