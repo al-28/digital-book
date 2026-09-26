@@ -123,6 +123,17 @@ The website itself does not store your books in the browser or inside GitHub. Af
 
 When you sign in again, use **My Books** or the book selector at the top to reopen the book. The same account can access the same books from another phone or computer. Private files are displayed through temporary signed URLs rather than public image URLs.
 
+
+### Account storage and authentication
+
+User accounts are **not supposed to be stored in the Storage bucket**. Supabase Auth creates and stores accounts in the project's protected `auth.users` table. The browser uses the Supabase publishable/anon key to call Auth; Row Level Security protects the app's own `books`, `sections`, and `photos` tables.
+
+The app does not need a separate account table or a second password database. Adding a database trigger just for signup would add another failure point, so this project intentionally lets Supabase Auth remain the source of truth for accounts.
+
+V1.6 also pins the Supabase JavaScript SDK to a current stable release, keeps browser session persistence enabled, keeps the Cancel button usable during authentication, adds a timeout so a stuck Auth request cannot leave the dialog permanently on "Creating…", and adds a resend-confirmation action when email confirmation is required.
+
+If signup appears stuck, check **Supabase → Authentication → Users** first. If the user exists there but is unconfirmed, the account was created and the next step is email confirmation. Supabase's built-in email provider is intended for testing and has a low sending limit; production email delivery should use custom SMTP.
+
 ### Google login setup
 
 The code now includes the Google sign-in button, but Google must also be enabled in your Supabase project.
