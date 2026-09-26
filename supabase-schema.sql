@@ -135,6 +135,11 @@ with check (exists(select 1 from public.books b where b.id=book_id and b.user_id
 
 alter table public.photos add column if not exists book_id uuid references public.books(id) on delete cascade;
 alter table public.photos add column if not exists section_id uuid references public.sections(id) on delete set null;
-insert into public.books(user_id,title) select user_id,coalesce(title,'My Book') from public.book_settings where not exists(select 1 from public.books b where b.user_id=public.book_settings.user_id);
+insert into public.books(user_id,title)
+select user_id,coalesce(title,'My Book') from public.book_settings
+where not exists(select 1 from public.books b where b.user_id=public.book_settings.user_id);
+insert into public.books(user_id,title)
+select distinct p.user_id,'My Book' from public.photos p
+where not exists(select 1 from public.books b where b.user_id=p.user_id);
 update public.photos p set book_id=b.id from public.books b where p.user_id=b.user_id and p.book_id is null;
 create index if not exists photos_book_position_idx on public.photos(book_id,position);
