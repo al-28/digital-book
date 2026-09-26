@@ -82,7 +82,7 @@
     .toc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.toc-item{display:block;width:100%;text-align:left;border:0;background:transparent;color:#ddd;padding:12px;border-radius:10px}.toc-item:hover{background:#242428}.toc-item.active{background:#fff;color:#111}
     @media(max-width:650px){.reader-top{padding:0 12px}.reader-top .btn{padding:8px 11px}.reader-title{font-size:14px}.reader-page{padding:12px 14px}.reader-sheet{min-height:72vh;padding:24px 18px;border-radius:3px}.reader-nav{width:42px;height:42px;font-size:25px;background:rgba(20,20,22,.8)}.reader-prev{left:8px}.reader-next{right:8px}.reader-footer{height:44px}.reader-footer span:last-child{display:none}}
     .account{font-size:12px;color:var(--muted);max-width:150px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .auth-provider{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px}.auth-divider{display:flex;align-items:center;gap:10px;color:#666;font-size:12px;margin:14px 0}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:#303034;flex:1}.auth-link{display:block;border:0;background:transparent;color:#aaa;padding:8px;width:100%;text-align:center;font-size:13px}.auth-link:hover{color:#fff}.book-library{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}.book-tile{border:1px solid #303034;background:#111113;color:#fff;border-radius:16px;padding:10px;text-align:left}.book-tile:hover{background:#19191c;border-color:#555}.book-tile-cover{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:11px;background:#202024;display:block}.book-tile-empty{width:100%;aspect-ratio:4/3;border-radius:11px;background:#202024;display:grid;place-items:center;color:#777}.book-tile-title{font-weight:650;margin:10px 3px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.book-tile-meta{font-size:12px;color:#777;margin:0 3px}
+    .auth-provider{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px}.auth-divider{display:flex;align-items:center;gap:10px;color:#666;font-size:12px;margin:14px 0}.auth-divider:before,.auth-divider:after{content:"";height:1px;background:#303034;flex:1}.auth-link{display:block;border:0;background:transparent;color:#aaa;padding:8px;width:100%;text-align:center;font-size:13px}.auth-link:hover{color:#fff}.auth-message{margin:10px 0 0;min-height:18px;color:#aaa;font-size:12px;line-height:1.4;text-align:center}.auth-message.error{color:#ff6961}.auth-message.success{color:#69d58b}.btn:disabled{opacity:.55;cursor:wait;transform:none!important}.password-wrap{position:relative}.password-wrap input{padding-right:84px}.password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:#999;font-size:12px;padding:6px 8px}.password-toggle:hover{color:#fff}.book-library{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}.book-tile{border:1px solid #303034;background:#111113;color:#fff;border-radius:16px;padding:10px;text-align:left}.book-tile:hover{background:#19191c;border-color:#555}.book-tile-cover{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:11px;background:#202024;display:block}.book-tile-empty{width:100%;aspect-ratio:4/3;border-radius:11px;background:#202024;display:grid;place-items:center;color:#777}.book-tile-title{font-weight:650;margin:10px 3px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.book-tile-meta{font-size:12px;color:#777;margin:0 3px}
     .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#34c759;margin-right:5px}
     @media(max-width:650px){
       .topbar{height:64px;padding:0 14px}.brand-mark{width:32px;height:32px}.brand-meta{display:none}.brand-title{font-size:14px}
@@ -145,12 +145,13 @@
   <div class="modal">
     <h2 id="authTitle">Log in</h2>
     <p id="authDescription">Use your account to access the same book from your phone, Mac, tablet, or another computer.</p>
-    <div class="field"><label>Email</label><input id="emailInput" type="email" autocomplete="email" placeholder="you@example.com"></div>
-    <div class="field"><label>Password</label><input id="passwordInput" type="password" autocomplete="current-password" placeholder="At least 6 characters"></div>
+    <div class="field"><label for="emailInput">Email</label><input id="emailInput" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@example.com"></div>
+    <div class="field"><label for="passwordInput">Password</label><div class="password-wrap"><input id="passwordInput" type="password" autocomplete="current-password" minlength="6" placeholder="At least 6 characters"><button class="password-toggle" id="passwordToggle" type="button" aria-label="Show password">Show</button></div></div>
     <div class="modal-actions">
-      <button class="btn" id="authCancel">Cancel</button>
-      <button class="btn primary" id="authSubmit">Log in</button>
+      <button class="btn" id="authCancel" type="button">Cancel</button>
+      <button class="btn primary" id="authSubmit" type="button">Log in</button>
     </div>
+    <div id="authMessage" class="auth-message" role="status" aria-live="polite"></div>
     <div class="auth-divider">or</div>
     <button class="btn auth-provider" id="googleButton">Continue with Google</button>
     <button class="auth-link" id="forgotPassword">Forgot your password?</button>
@@ -209,7 +210,7 @@
     ================================================================
   */
 
-  const SUPABASE_URL = "https://eklqowfnufitfuqfcrfu.supabase.co/rest/v1/";
+  const SUPABASE_URL = "https://eklqowfnufitfuqfcrfu.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrbHFvd2ZudWZpdGZ1cWZjcmZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0MjY4NTcsImV4cCI6MjEwNjAwMjg1N30.bxofSHA2K2kI0g1IQCjG4qgRI7ckluofqDUI1JqmQH0";
 
   const CONFIGURED =
@@ -482,55 +483,161 @@
       : "Your photos, in the order you added them.";
   }
 
+  function setAuthMessage(message = "", type = "") {
+    const el = $("authMessage");
+    el.textContent = message;
+    el.className = "auth-message" + (type ? " " + type : "");
+  }
+
+  function setAuthBusy(value) {
+    $("authSubmit").disabled = value;
+    $("googleButton").disabled = value;
+    $("forgotPassword").disabled = value;
+    $("authSwitch").disabled = value;
+    $("authCancel").disabled = value;
+    $("authSubmit").textContent = value
+      ? (state.authMode === "login" ? "Logging in…" : "Creating…")
+      : (state.authMode === "login" ? "Log in" : "Create account");
+  }
+
+  function updateAuthModeUI() {
+    const login = state.authMode === "login";
+    $("authTitle").textContent = login ? "Log in" : "Create your account";
+    $("authDescription").textContent = login
+      ? "Use your account to access the same book from your phone, Mac, tablet, or another computer."
+      : "Your photos will belong to your account and remain private.";
+    $("authSubmit").textContent = login ? "Log in" : "Create account";
+    $("authSwitch").textContent = login ? "Create an account instead" : "I already have an account";
+    $("passwordInput").autocomplete = login ? "current-password" : "new-password";
+    $("forgotPassword").classList.toggle("hidden", !login);
+    setAuthMessage("");
+  }
+
   function openAuth(mode = "login") {
     state.authMode = mode;
     $("authModal").classList.remove("hidden");
-    $("authTitle").textContent = mode === "login" ? "Log in" : "Create your account";
-    $("authDescription").textContent = mode === "login"
-      ? "Use your account to access the same book from your phone, Mac, tablet, or another computer."
-      : "Your photos will belong to your account and remain private.";
-    $("authSubmit").textContent = mode === "login" ? "Log in" : "Create account";
-    $("authSwitch").textContent = mode === "login" ? "Create an account instead" : "I already have an account";
+    updateAuthModeUI();
+    setTimeout(() => $("emailInput").focus(), 0);
   }
 
   function closeAuth() {
     $("authModal").classList.add("hidden");
-    $("emailInput").value="";
-    $("passwordInput").value="";
+    setAuthMessage("");
+    setAuthBusy(false);
+    $("emailInput").value = "";
+    $("passwordInput").value = "";
+    $("passwordInput").type = "password";
+    $("passwordToggle").textContent = "Show";
+    $("passwordToggle").setAttribute("aria-label", "Show password");
   }
 
-  function redirectUrl(){return window.location.href.split("#")[0];}
+  function redirectUrl() {
+    return window.location.href.split("#")[0];
+  }
 
   async function authenticate() {
-    if (!supabaseClient) { toast("Add your Supabase credentials to index.html first."); return; }
-    const email=$("emailInput").value.trim();
-    const password=$("passwordInput").value;
-    if(!email||!password){toast("Enter your email and password.");return;}
-    $("authSubmit").disabled=true;
-    try{
-      const result=state.authMode==="login"
-        ? await supabaseClient.auth.signInWithPassword({email,password})
-        : await supabaseClient.auth.signUp({email,password,options:{emailRedirectTo:redirectUrl()}});
-      if(result.error)throw result.error;
-      toast(state.authMode==="login"?"You're logged in.":"Account created. Check your email if confirmation is enabled.");
-      closeAuth();
-    }catch(error){toast(error.message||"Authentication failed.");}
-    finally{$("authSubmit").disabled=false;}
+    if (!supabaseClient) {
+      setAuthMessage("Supabase is not configured yet.", "error");
+      return;
+    }
+
+    const email = $("emailInput").value.trim().toLowerCase();
+    const password = $("passwordInput").value;
+
+    if (!email || !email.includes("@")) {
+      setAuthMessage("Enter a valid email address.", "error");
+      $("emailInput").focus();
+      return;
+    }
+
+    if (password.length < 6) {
+      setAuthMessage("Password must be at least 6 characters.", "error");
+      $("passwordInput").focus();
+      return;
+    }
+
+    setAuthBusy(true);
+    setAuthMessage(state.authMode === "login" ? "Signing you in…" : "Creating your account…");
+
+    try {
+      const result = state.authMode === "login"
+        ? await supabaseClient.auth.signInWithPassword({ email, password })
+        : await supabaseClient.auth.signUp({
+            email,
+            password,
+            options: { emailRedirectTo: redirectUrl() }
+          });
+
+      if (result.error) throw result.error;
+
+      if (state.authMode === "login") {
+        setAuthMessage("You're logged in.", "success");
+        setTimeout(closeAuth, 350);
+      } else if (result.data?.session) {
+        setAuthMessage("Account created. You're now signed in.", "success");
+        setTimeout(closeAuth, 500);
+      } else {
+        setAuthMessage("Account created. Check your email to confirm your address.", "success");
+        $("passwordInput").value = "";
+      }
+    } catch (error) {
+      console.error("Authentication error:", error);
+      setAuthMessage(error.message || "Authentication failed. Please try again.", "error");
+    } finally {
+      setAuthBusy(false);
+    }
   }
 
-  async function signInWithGoogle(){
-    if(!supabaseClient){toast("Add your Supabase credentials to index.html first.");return;}
-    const {error}=await supabaseClient.auth.signInWithOAuth({provider:"google",options:{redirectTo:redirectUrl()}});
-    if(error)toast(error.message||"Google sign-in failed.");
+  async function signInWithGoogle() {
+    if (!supabaseClient) {
+      setAuthMessage("Supabase is not configured yet.", "error");
+      return;
+    }
+
+    setAuthBusy(true);
+    setAuthMessage("Opening Google sign-in…");
+
+    try {
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: redirectUrl() }
+      });
+      if (error) throw error;
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      setAuthMessage(error.message || "Google sign-in failed. Check the Google provider settings in Supabase.", "error");
+      setAuthBusy(false);
+    }
   }
 
-  async function forgotPassword(){
-    if(!supabaseClient){toast("Add your Supabase credentials to index.html first.");return;}
-    const email=$("emailInput").value.trim();
-    if(!email){toast("Enter your email first.");$("emailInput").focus();return;}
-    const {error}=await supabaseClient.auth.resetPasswordForEmail(email,{redirectTo:redirectUrl()});
-    if(error){toast(error.message||"Could not send reset email.");return;}
-    toast("If that email can reset a password, a reset link has been sent.");
+  async function forgotPassword() {
+    if (!supabaseClient) {
+      setAuthMessage("Supabase is not configured yet.", "error");
+      return;
+    }
+
+    const email = $("emailInput").value.trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      setAuthMessage("Enter your account email first.", "error");
+      $("emailInput").focus();
+      return;
+    }
+
+    setAuthBusy(true);
+    setAuthMessage("Sending reset instructions…");
+
+    try {
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl()
+      });
+      if (error) throw error;
+      setAuthMessage("If that email can reset a password, check your inbox for the reset link.", "success");
+    } catch (error) {
+      console.error("Password reset error:", error);
+      setAuthMessage(error.message || "Could not send the reset email.", "error");
+    } finally {
+      setAuthBusy(false);
+    }
   }
 
   async function logout() {
@@ -859,10 +966,13 @@
           }
           if(event==="PASSWORD_RECOVERY"){
             const newPassword=prompt("Choose a new password (at least 6 characters):");
-            if(newPassword){
-              const {error}=await supabaseClient.auth.updateUser({password:newPassword});
-              toast(error?error.message:"Password updated.");
+            if(newPassword === null) return;
+            if(newPassword.length < 6){
+              toast("Password must be at least 6 characters.");
+              return;
             }
+            const {error}=await supabaseClient.auth.updateUser({password:newPassword});
+            toast(error ? error.message : "Password updated successfully.");
           }
         }catch(error){console.error(error);toast(error.message||"Could not refresh your account.");}
       },0);
@@ -932,18 +1042,26 @@
   $("forgotPassword").addEventListener("click", forgotPassword);
   $("libraryButton").addEventListener("click", openLibrary);
   $("libraryClose").addEventListener("click", closeLibrary);
-  $("libraryModal").addEventListener("click", e => { if(e.target===$("libraryModal")) closeLibrary(); });
+  $("libraryModal").addEventListener("click", e => { if(e.target === $("libraryModal")) closeLibrary(); });
   $("authSubmit").addEventListener("click", authenticate);
-  $("emailInput").addEventListener("keydown", e => { if(e.key==="Enter") authenticate(); });
+  $("emailInput").addEventListener("keydown", e => { if(e.key === "Enter") { e.preventDefault(); authenticate(); } });
+  $("passwordInput").addEventListener("keydown", e => { if(e.key === "Enter") { e.preventDefault(); authenticate(); } });
   $("authSwitch").addEventListener("click", () => {
     openAuth(state.authMode === "login" ? "signup" : "login");
   });
-
+  $("passwordToggle").addEventListener("click", () => {
+    const input = $("passwordInput");
+    const visible = input.type === "text";
+    input.type = visible ? "password" : "text";
+    $("passwordToggle").textContent = visible ? "Show" : "Hide";
+    $("passwordToggle").setAttribute("aria-label", visible ? "Show password" : "Hide password");
+  });
+  document.addEventListener("keydown", e => {
+    if (!$("authModal").classList.contains("hidden") && e.key === "Escape") closeAuth();
+  });
   $("authModal").addEventListener("click", e => {
     if (e.target === $("authModal")) closeAuth();
   });
-
-  $("passwordInput").addEventListener("keydown", e => { if(e.key==="Enter") authenticate(); });
 
   const dropZone = $("dropZone");
 
