@@ -17,6 +17,8 @@
     .app{min-height:100vh}
     .topbar{position:sticky;top:0;z-index:20;height:72px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(11,11,12,.82);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,.08)}
     .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .book-switcher{display:flex;align-items:center;gap:8px;margin-left:18px}.book-switcher select{background:#141416;color:#fff;border:1px solid #2a2a2e;border-radius:10px;padding:8px 30px 8px 10px;max-width:180px}
+    .cover{width:100%;max-height:320px;object-fit:cover;border-radius:16px;margin-bottom:22px;display:block;background:#151517}.cover-empty{border:1px dashed #333;border-radius:16px;padding:28px;text-align:center;color:#777;margin-bottom:22px}
     .brand-mark{width:36px;height:36px;border-radius:10px;background:#fff;color:#111;display:grid;place-items:center;font-weight:800}
     .brand-text{min-width:0}.brand-title{font-weight:650;letter-spacing:-.3px}.brand-meta{font-size:12px;color:var(--muted);margin-top:2px}
     .actions{display:flex;align-items:center;gap:8px}
@@ -76,6 +78,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="brand-mark">B</div>
+      <div class="book-switcher"><select id="bookSelect" aria-label="Select book"></select><button class="btn icon" id="newBookButton" title="New book">＋</button></div>
       <div>
         <div class="brand-title">Digital Book</div>
         <div class="brand-meta" id="syncStatus"><span class="status-dot"></span>Cloud synced</div>
@@ -84,7 +87,9 @@
     <div class="actions">
       <div class="account" id="accountEmail"></div>
       <button class="btn" id="authButton">Log in</button>
+      <button class="btn" id="coverButton">Cover</button>
       <button class="btn primary" id="headerUpload">＋ Add Photos</button>
+      <input id="coverInput" type="file" accept="image/*" class="hidden">
     </div>
   </header>
 
@@ -93,6 +98,7 @@
       <div>
         <h1 id="bookTitle" contenteditable="true" spellcheck="false">My Book</h1>
         <p id="countText">Your photos, in the order you added them.</p>
+        <div style="margin-top:14px;display:flex;gap:8px;align-items:center"><select id="sectionSelect" style="background:#141416;color:#fff;border:1px solid #2a2a2e;border-radius:10px;padding:9px 12px"></select><button class="btn" id="newSectionButton">＋ Section</button></div>
       </div>
     </section>
 
@@ -165,6 +171,10 @@
   const state = {
     user: null,
     photos: [],
+    books: [],
+    sections: [],
+    currentBookId: null,
+    currentSectionId: null,
     bookTitle: "My Book",
     authMode: "login",
     viewerIndex: -1,
@@ -211,6 +221,20 @@
     }
   }
 
+  async function loadBooks() {
+    const {data,error}=await supabaseClient.from("books").select("id,title,cover_path").eq("user_id",state.user.id).order("created_at");
+    if(error)throw error;
+    state.books=data||[];
+    if(!state.books.length){const x=await supabaseClient.from("books").insert({user_id:state.user.id,title:"My Book"}).select().single();if(x.error)throw x.error;state.books=[x.data]}
+    if(!state.currentBookId||!state.books.some(b=>b.id===state.currentBookId))state.currentBookId=state.books[0].id;
+    const b=state.books.find(x=>x.id===state.currentBookId);state.bookTitle=b.title;updateBookTitle();renderBookSelector();await loadSections();await renderCover();
+  }
+  function renderBookSelector(){const s=$("bookSelect");s.innerHTML="";state.books.forEach(b=>{const o=document.createElement("option");o.value=b.id;o.textContent=b.title;s.appendChild(o)});s.value=state.currentBookId}
+  async function selectBook(id){state.currentBookId=id;state.currentSectionId=null;await loadBooks();await loadPhotos()}
+  async function createBook(){const title=prompt("New book name","My New Book");if(!title?.trim())return;const x=await supabaseClient.from("books").insert({user_id:state.user.id,title:title.trim().slice(0,120)}).select().single();if(x.error){toast(x.error.message);return}state.currentBookId=x.data.id;await loadBooks();await loadPhotos();toast("Book created.")}
+  async function loadSections(){const x=await supabaseClient.from("sections").select("id,name,position").eq("book_id",state.currentBookId).order("position");if(x.error)throw x.error;state.sections=x.data||[];renderSectionSelector()}
+  function renderSectionSelector(){const s=$("sectionSelect");s.innerHTML='<option value="">All sections</option>';state.sections.forEach(x=>{const o=document.createElement("option");o.value=x.id;o.textContent=x.name;s.appendChild(o)});s.value=state.currentSectionId||""}
+  async function createSection(){const name=prompt("Section name","Chapter 1");if(!name?.trim())return;const x=await supabaseClient.from("sections").insert({book_id:state.currentBookId,name:name.trim().slice(0,120),position:state.sections.length}).select().single();if(x.error){toast(x.error.message);return}state.currentSectionId=x.data.id;await loadSections();await loadPhotos()}
   async function loadBookSettings() {
     if (!state.user) { state.bookTitle = "My Book"; updateBookTitle(); return; }
     const { data, error } = await supabaseClient.from("book_settings").select("title").eq("user_id", state.user.id).maybeSingle();
@@ -354,6 +378,8 @@
           .insert({
             id,
             user_id: state.user.id,
+            book_id: state.currentBookId,
+            section_id: state.currentSectionId,
             storage_path: path,
             filename: file.name,
             caption: "",
@@ -391,8 +417,9 @@
     try {
       const { data, error } = await supabaseClient
         .from("photos")
-        .select("id,storage_path,filename,caption,position,created_at")
+        .select("id,storage_path,filename,caption,section_id,position,created_at")
         .eq("user_id", state.user.id)
+        .eq("book_id", state.currentBookId)
         .order("position", { ascending: true })
         .order("created_at", { ascending: true });
 
@@ -418,7 +445,7 @@
         }
       }
 
-      state.photos = photos;
+      state.photos = state.currentSectionId ? photos.filter(p=>p.section_id===state.currentSectionId) : photos;
       render();
     } catch (error) {
       console.error(error);
@@ -596,6 +623,7 @@
     }[char]));
   }
 
+  async function renderCover(){const area=$("coverArea");if(!area)return;area.innerHTML="";const b=state.books.find(x=>x.id===state.currentBookId);if(!b?.cover_path){const d=document.createElement("div");d.className="cover-empty";d.textContent="No cover yet — use Cover to add one.";area.appendChild(d);return}const x=await supabaseClient.storage.from("photos").createSignedUrl(b.cover_path,3600);if(x.error)return;const img=document.createElement("img");img.className="cover";img.src=x.data.signedUrl;img.alt=b.title+" cover";area.appendChild(img)}
   async function init() {
     if (!CONFIGURED) {
       $("syncStatus").innerHTML = '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff9f0a;margin-right:5px"></span>Setup required';
@@ -611,12 +639,12 @@
     state.user = data.session?.user || null;
     updateHeader();
     render();
-    if (state.user) await loadBookSettings();
+    if (state.user) await loadBooks();
 
     supabaseClient.auth.onAuthStateChange(async (_event, session) => {
       state.user = session?.user || null;
       updateHeader();
-      await loadBookSettings();
+      await loadBooks();
       await loadPhotos();
     });
 
@@ -637,6 +665,12 @@
     e.target.value = "";
   });
 
+  $("bookSelect").addEventListener("change",e=>selectBook(e.target.value));
+  $("newBookButton").addEventListener("click",createBook);
+  $("newSectionButton").addEventListener("click",createSection);
+  $("sectionSelect").addEventListener("change",async e=>{state.currentSectionId=e.target.value||null;await loadPhotos()});
+  $("coverButton").addEventListener("click",()=>$("coverInput").click());
+  $("coverInput").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;const ext=file.name.split(".").pop()||"jpg";const path=state.user.id+"/covers/"+state.currentBookId+"."+ext;const up=await supabaseClient.storage.from("photos").upload(path,file,{upsert:true,contentType:file.type});if(up.error){toast(up.error.message);return}const x=await supabaseClient.from("books").update({cover_path:path}).eq("id",state.currentBookId).eq("user_id",state.user.id);if(x.error){toast(x.error.message);return}state.books.find(b=>b.id===state.currentBookId).cover_path=path;await renderCover();toast("Cover saved.");e.target.value=""});
   $("bookTitle").addEventListener("blur", saveBookTitle);
   $("bookTitle").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } });
 
