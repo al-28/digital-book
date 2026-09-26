@@ -172,10 +172,10 @@
     </div>
     <div id="authMessage" class="auth-message" role="status" aria-live="polite"></div>
     <div class="auth-divider">or</div>
-    <button class="btn auth-provider" id="googleButton">Continue with Google</button>
-    <button class="auth-link" id="forgotPassword">Forgot your password?</button>
-    <button class="auth-link hidden" id="resendConfirmation">Resend confirmation email</button>
-    <button class="btn" id="authSwitch" style="width:100%;margin-top:4px">Create an account instead</button>
+    <button class="btn auth-provider" id="googleButton" type="button">Continue with Google</button>
+    <button class="auth-link" id="forgotPassword" type="button">Forgot your password?</button>
+    <button class="auth-link hidden" id="resendConfirmation" type="button">Resend confirmation email</button>
+    <button class="btn" id="authSwitch" type="button" style="width:100%;margin-top:4px">Create an account instead</button>
   </div>
 </div>
 
@@ -1398,6 +1398,7 @@
   $("authSwitch").addEventListener("click", () => {
     openAuth(state.authMode === "login" ? "signup" : "login");
   });
+  window.__digitalBookAuthBindingsReady = true;
   $("passwordToggle").addEventListener("click", () => {
     const input = $("passwordInput");
     const visible = input.type === "text";
@@ -1450,6 +1451,24 @@ $("profileButton").addEventListener("click",openProfile);
   });
 
   init();
+</script>
+
+<script>
+(function(){
+  function wireAuthFallback(){
+    if(window.__digitalBookAuthBindingsReady) return;
+    const byId=id=>document.getElementById(id);
+    const open=mode=>{ if(typeof window.openAuth==="function"){ window.openAuth(mode); return; } const modal=byId("authModal"); if(modal) modal.classList.remove("hidden"); };
+    const close=()=>{ if(typeof window.closeAuth==="function") window.closeAuth(); else byId("authModal")?.classList.add("hidden"); };
+    const submit=()=>{ if(typeof window.authenticate==="function") window.authenticate(); };
+    byId("authButton")?.addEventListener("click",()=>open("login"),{capture:true});
+    byId("authCancel")?.addEventListener("click",close,{capture:true});
+    byId("authSubmit")?.addEventListener("click",submit,{capture:true});
+    byId("authSwitch")?.addEventListener("click",()=>{ const title=byId("authTitle")?.textContent||""; open(title==="Log in" ? "signup" : "login"); },{capture:true});
+    window.__digitalBookAuthFallback=true;
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",wireAuthFallback,{once:true}); else wireAuthFallback();
+})();
 </script>
 </body>
 </html>
