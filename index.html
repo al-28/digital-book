@@ -811,7 +811,25 @@
       if (result.error) throw result.error;
 
       if (state.authMode === "login") {
+        const session = result.data?.session;
+        if (!session?.user) throw new Error("Login succeeded but Supabase did not return a user session. Please try again.");
+        state.user = session.user;
+        state.profileName = session.user.user_metadata?.display_name || "";
+        updateHeader();
+        render();
+        try {
+          await loadBooks();
+          await loadPhotos();
+          await loadFavorites();
+          renderBookSelector();
+          renderSectionSelector();
+          render();
+        } catch (loadError) {
+          console.error("Post-login data load failed:", loadError);
+          toast(loadError.message || "Logged in, but some book data could not be loaded.");
+        }
         setAuthMessage("You're logged in.", "success");
+        $("passwordInput").value = "";
         setTimeout(closeAuth, 350);
       } else if (result.data?.session) {
         setAuthMessage("Account created. You're now signed in.", "success");
