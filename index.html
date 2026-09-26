@@ -419,31 +419,20 @@
     await renderPublicLibrary();
   }
 
-  async function renderPublicLibrary(){
-    const panel=$("publicLibrary");
-    if(!panel)return;
-    panel.innerHTML="";
-    if(!state.publicBooks.length){
-      panel.innerHTML='<div class="discover-empty" style="grid-column:1/-1"><strong>No public books yet.</strong><div style="margin-top:7px">When someone publishes a book, it will appear here.</div></div>';
-      return;
-    }
+  async async function renderPublicLibrary(){
+    const panel=$("publicLibrary");if(!panel)return;panel.innerHTML="";
+    if(!state.publicBooks.length){panel.innerHTML='<div class="discover-empty" style="grid-column:1/-1"><strong>No public books yet.</strong><div style="margin-top:7px">When someone publishes a book, it will appear here.</div></div>';return}
     for(const book of state.publicBooks){
-      const card=document.createElement("button");
-      card.className="public-card";
-      let coverHtml;
-      if(book.cover_path){
-        const signed=await supabaseClient.storage.from("photos").createSignedUrl(book.cover_path,3600);
-        if(!signed.error) coverHtml='<img class="public-cover" src="'+signed.data.signedUrl+'" alt="">';
-      }
-      if(!coverHtml) coverHtml='<div class="public-cover-empty">B</div>';
-      card.innerHTML=coverHtml+
-        '<div class="public-card-title"></div>'+
-        '<div class="public-card-author"></div>'+
-        '<div class="public-card-description"></div>';
+      const card=document.createElement("article");card.className="public-card";
+      let coverHtml="";
+      if(book.cover_path){const signed=await supabaseClient.storage.from("photos").createSignedUrl(book.cover_path,3600);if(!signed.error)coverHtml='<img class="public-cover" src="'+signed.data.signedUrl+'" alt="">'}
+      if(!coverHtml)coverHtml='<div class="public-cover-empty">B</div>';
+      card.innerHTML=coverHtml+'<div class="public-card-title"></div><div class="public-card-author"></div><div class="public-card-description"></div><div class="library-actions"><button class="btn public-read">Read</button><button class="btn public-favorite"></button></div>';
       card.querySelector(".public-card-title").textContent=book.title||"Untitled";
       card.querySelector(".public-card-author").textContent=book.author?book.author:"Digital Book";
       card.querySelector(".public-card-description").textContent=book.description||"";
-      card.addEventListener("click",()=>openPublicBook(book.id));
+      card.querySelector(".public-read").onclick=()=>openPublicBook(book.id);
+      const fav=card.querySelector(".public-favorite");fav.textContent=state.favorites.has(book.id)?"♥":"♡";fav.title="Favorite";fav.onclick=()=>toggleFavorite(book.id);
       panel.appendChild(card);
     }
   }
