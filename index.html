@@ -844,30 +844,34 @@
     render();
     if (state.user) await loadBooks();
 
-      supabaseClient.auth.onAuthStateChange(async (event, session) => {
+      supabaseClient.auth.onAuthStateChange((event, session) => {
       state.user=session?.user||null;
       updateHeader();
-      if(state.user){
-        await loadBooks();
-        await loadPhotos();
-      }else{
-        state.books=[];state.sections=[];state.photos=[];state.currentBookId=null;state.currentSectionId=null;state.bookTitle="My Book";
-        renderBookSelector();renderSectionSelector();render();
-        closeLibrary();closeReader();closeViewer();
-      }
-      if(event==="PASSWORD_RECOVERY"){
-        const newPassword=prompt("Choose a new password (at least 6 characters):");
-        if(newPassword){
-          const {error}=await supabaseClient.auth.updateUser({password:newPassword});
-          toast(error?error.message:"Password updated.");
-        }
-      }
+      setTimeout(async()=>{
+        try{
+          if(state.user){
+            await loadBooks();
+            await loadPhotos();
+          }else{
+            state.books=[];state.sections=[];state.photos=[];state.currentBookId=null;state.currentSectionId=null;state.bookTitle="My Book";
+            renderBookSelector();renderSectionSelector();render();
+            closeLibrary();closeReader();closeViewer();
+          }
+          if(event==="PASSWORD_RECOVERY"){
+            const newPassword=prompt("Choose a new password (at least 6 characters):");
+            if(newPassword){
+              const {error}=await supabaseClient.auth.updateUser({password:newPassword});
+              toast(error?error.message:"Password updated.");
+            }
+          }
+        }catch(error){console.error(error);toast(error.message||"Could not refresh your account.");}
+      },0);
     });
 
     if (state.user) await loadPhotos();
   }
 
-  $("chooseButton").addEventListener("click", () => $("fileInput").click());
+  $("chooseButton").addEventListener("click", () => {if(!state.user){openAuth("login");return;}$("fileInput").click();});
   $("headerUpload").addEventListener("click", () => {
     if (!state.user) {
       openAuth("login");
@@ -882,11 +886,11 @@
   });
 
   $("bookSelect").addEventListener("change",e=>selectBook(e.target.value));
-  $("newBookButton").addEventListener("click",createBook);
-  $("newSectionButton").addEventListener("click",createSection);
-  $("sectionSelect").addEventListener("change",async e=>{state.currentSectionId=e.target.value||null;await loadPhotos()});
-  $("coverButton").addEventListener("click",()=>$("coverInput").click());
-  $("coverInput").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;const ext=file.name.split(".").pop()||"jpg";const path=state.user.id+"/covers/"+state.currentBookId+"."+ext;const up=await supabaseClient.storage.from("photos").upload(path,file,{upsert:true,contentType:file.type});if(up.error){toast(up.error.message);return}const x=await supabaseClient.from("books").update({cover_path:path}).eq("id",state.currentBookId).eq("user_id",state.user.id);if(x.error){toast(x.error.message);return}state.books.find(b=>b.id===state.currentBookId).cover_path=path;await renderCover();toast("Cover saved.");e.target.value=""});
+  $("newBookButton").addEventListener("click",()=>{if(!state.user){openAuth("login");return;}createBook()});
+  $("newSectionButton").addEventListener("click",()=>{if(!state.user){openAuth("login");return;}createSection()});
+  $("sectionSelect").addEventListener("change",async e=>{if(!state.user)return;state.currentSectionId=e.target.value||null;await loadPhotos()});
+  $("coverButton").addEventListener("click",()=>{if(!state.user){openAuth("login");return;}$("coverInput").click()});
+  $("coverInput").addEventListener("change",async e=>{const file=e.target.files[0];if(!file)return;if(!state.user){toast("Log in first.");e.target.value="";return;}const ext=file.name.split(".").pop()||"jpg";const path=state.user.id+"/covers/"+state.currentBookId+"."+ext;const up=await supabaseClient.storage.from("photos").upload(path,file,{upsert:true,contentType:file.type});if(up.error){toast(up.error.message);return}const x=await supabaseClient.from("books").update({cover_path:path}).eq("id",state.currentBookId).eq("user_id",state.user.id);if(x.error){toast(x.error.message);return}state.books.find(b=>b.id===state.currentBookId).cover_path=path;await renderCover();toast("Cover saved.");e.target.value=""});
   $("bookTitle").addEventListener("blur", saveBookTitle);
   $("bookTitle").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } });
 
