@@ -265,3 +265,41 @@ grant select, insert, update, delete on public.sections to authenticated;
 grant select on public.sections to anon;
 grant select, insert, update, delete on public.photos to authenticated;
 grant select on public.photos to anon;
+
+
+-- V2.0: favorites and bookmarks
+create table if not exists public.book_favorites (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  book_id uuid not null references public.books(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (user_id, book_id)
+);
+alter table public.book_favorites enable row level security;
+grant select, insert, delete on public.book_favorites to authenticated;
+drop policy if exists "Users can manage their own favorites" on public.book_favorites;
+create policy "Users can manage their own favorites"
+on public.book_favorites for all to authenticated
+using ((select auth.uid()) = user_id)
+with check ((select auth.uid()) = user_id);
+
+create table if not exists public.bookmarks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  book_id uuid not null references public.books(id) on delete cascade,
+  photo_id uuid not null references public.photos(id) on delete cascade,
+  page_index integer not null default 0,
+  created_at timestamptz not null default now(),
+  unique (user_id, photo_id)
+);
+alter table public.bookmarks enable row level security;
+create index if not exists bookmarks_user_book_idx on public.bookmarks(user_id, book_id, created_at desc);
+grant select, insert, delete on public.bookmarks to authenticated;
+drop policy if exists "Users can manage their own bookmarks" on public.bookmarks;
+create policy "Users can manage their own bookmarks"
+on public.bookmarks for all to authenticated
+using ((select auth.uid()) = user_id)
+with check (
+  (select auth.uid()) = user_id
+  and exists (select 1 from public.books b where b.id = book_id and b.user_id = (select auth.uid()))
+  and exists (select 1 from public.photos p where p.id = photo_id and p.book_id = book_id and p.user_id = (select auth.uid()))
+);
