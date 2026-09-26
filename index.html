@@ -1302,11 +1302,14 @@
       return;
     }
 
+    // Load the public catalog independently of the private auth/session flow.
+    // A session problem must never prevent public books from appearing.
+    await loadPublicBooks();
+
     const { data } = await supabaseClient.auth.getSession();
     state.user = data.session?.user || null;
     updateHeader();
     render();
-    await loadPublicBooks();
     if (state.user) {
       try {
         await loadBooks();await loadFavorites();
@@ -1322,6 +1325,8 @@
       if (!state.user) { state.profileName=""; }
       setTimeout(async()=>{
         try{
+          // Refresh the public catalog after every auth transition as well.
+          await loadPublicBooks($("publicSearch").value);
           if(state.user){
             await loadBooks();
             await loadPhotos();
