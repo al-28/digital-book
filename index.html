@@ -48,6 +48,8 @@
     .mini{width:38px;height:38px;padding:0;border:1px solid rgba(255,255,255,.18);border-radius:50%;background:rgba(0,0,0,.68);color:#fff;display:grid;place-items:center}
     .mini:hover{background:rgba(0,0,0,.9)}.mini.delete:hover{background:var(--danger);border-color:var(--danger)}
     .filename{margin-top:10px;color:#666;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .caption{margin-top:10px;width:100%;border:1px solid transparent;background:transparent;color:#ddd;border-radius:10px;padding:8px 10px;outline:none;transition:.16s border,.16s background}.caption:hover,.caption:focus{border-color:#303034;background:#111113}.caption::placeholder{color:#555}
+    .viewer{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.94);display:grid;place-items:center;padding:28px}.viewer img{max-width:96vw;max-height:90vh;width:auto;height:auto;object-fit:contain}.viewer-close{position:absolute;top:18px;right:18px;width:44px;height:44px;border-radius:50%;border:1px solid #444;background:#18181a;color:#fff;font-size:26px}.viewer-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border-radius:50%;border:1px solid #444;background:#18181a;color:#fff;font-size:22px}.viewer-prev{left:18px}.viewer-next{right:18px}.viewer-counter{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:#aaa;font-size:13px}
     .empty{text-align:center;padding:95px 20px;color:var(--muted)}
     .empty h2{color:#ddd;margin:0 0 8px;font-size:23px}
     .empty p{margin:0 auto 18px;max-width:460px;line-height:1.5}
@@ -89,7 +91,7 @@
   <main>
     <section class="hero">
       <div>
-        <h1>My Book</h1>
+        <h1 id="bookTitle" contenteditable="true" spellcheck="false">My Book</h1>
         <p id="countText">Your photos, in the order you added them.</p>
       </div>
     </section>
@@ -128,6 +130,13 @@
 </div>
 
 <div id="toast" class="toast"></div>
+<div id="viewer" class="viewer hidden" aria-modal="true" role="dialog">
+  <button class="viewer-close" id="viewerClose" aria-label="Close">×</button>
+  <button class="viewer-nav viewer-prev" id="viewerPrev" aria-label="Previous">‹</button>
+  <img id="viewerImage" alt="">
+  <button class="viewer-nav viewer-next" id="viewerNext" aria-label="Next">›</button>
+  <div class="viewer-counter" id="viewerCounter"></div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -156,7 +165,9 @@
   const state = {
     user: null,
     photos: [],
+    bookTitle: "My Book",
     authMode: "login",
+    viewerIndex: -1,
     draggingId: null
   };
 
@@ -180,6 +191,63 @@
     $("syncStatus").innerHTML = state.user
       ? '<span class="status-dot"></span>Cloud synced'
       : '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff9f0a;margin-right:5px"></span>Not signed in';
+  }
+
+  function updateBookTitle() {
+    $("bookTitle").textContent = state.bookTitle || "My Book";
+  }
+
+  async function saveBookTitle() {
+    if (!state.user) return;
+    const title = $("bookTitle").textContent.trim().slice(0, 120) || "My Book";
+    state.bookTitle = title;
+    try {
+      const { error } = await supabaseClient.from("book_settings").upsert({ user_id: state.user.id, title });
+      if (error) throw error;
+      toast("Book title saved.");
+    } catch (error) {
+      console.error(error);
+      toast("Could not save the book title.");
+    }
+  }
+
+  async function loadBookSettings() {
+    if (!state.user) { state.bookTitle = "My Book"; updateBookTitle(); return; }
+    const { data, error } = await supabaseClient.from("book_settings").select("title").eq("user_id", state.user.id).maybeSingle();
+    if (error) { console.error(error); return; }
+    state.bookTitle = data?.title || "My Book";
+    updateBookTitle();
+  }
+
+  function openViewer(index) {
+    if (index < 0 || index >= state.photos.length) return;
+    state.viewerIndex = index;
+    const photo = state.photos[index];
+    $("viewerImage").src = photo.url;
+    $("viewerImage").alt = photo.filename || "Photo";
+    $("viewerCounter").textContent = (index + 1) + " / " + state.photos.length;
+    $("viewer").classList.remove("hidden");
+  }
+
+  function closeViewer() {
+    $("viewer").classList.add("hidden");
+    $("viewerImage").src = "";
+    state.viewerIndex = -1;
+  }
+
+  function moveViewer(delta) {
+    if (!state.photos.length) return;
+    let next = state.viewerIndex + delta;
+    if (next < 0) next = state.photos.length - 1;
+    if (next >= state.photos.length) next = 0;
+    openViewer(next);
+  }
+
+  async function saveCaption(photo, value) {
+    const caption = value.trim().slice(0, 500);
+    photo.caption = caption;
+    const { error } = await supabaseClient.from("photos").update({ caption }).eq("id", photo.id).eq("user_id", state.user.id);
+    if (error) { console.error(error); toast("Could not save caption."); }
   }
 
   function updateCount() {
@@ -288,6 +356,7 @@
             user_id: state.user.id,
             storage_path: path,
             filename: file.name,
+            caption: "",
             position: nextPosition,
             created_at: new Date().toISOString()
           });
@@ -322,7 +391,7 @@
     try {
       const { data, error } = await supabaseClient
         .from("photos")
-        .select("id,storage_path,filename,position,created_at")
+        .select("id,storage_path,filename,caption,position,created_at")
         .eq("user_id", state.user.id)
         .order("position", { ascending: true })
         .order("created_at", { ascending: true });
@@ -431,6 +500,7 @@
 
   function render() {
     updateHeader();
+    updateBookTitle();
     updateCount();
 
     const grid = $("bookGrid");
@@ -474,6 +544,19 @@
         </div>
         <div class="filename">${escapeHtml(photo.filename)}</div>
       `;
+
+      card.querySelector("img").addEventListener("click", () => openViewer(index));
+      card.querySelector("img").style.cursor = "zoom-in";
+
+      const caption = document.createElement("input");
+      caption.className = "caption";
+      caption.type = "text";
+      caption.maxLength = 500;
+      caption.placeholder = "Add a caption…";
+      caption.value = photo.caption || "";
+      caption.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); caption.blur(); } });
+      caption.addEventListener("blur", () => saveCaption(photo, caption.value));
+      card.appendChild(caption);
 
       card.querySelector(".delete").addEventListener("click", e => {
         e.stopPropagation();
@@ -528,10 +611,12 @@
     state.user = data.session?.user || null;
     updateHeader();
     render();
+    if (state.user) await loadBookSettings();
 
     supabaseClient.auth.onAuthStateChange(async (_event, session) => {
       state.user = session?.user || null;
       updateHeader();
+      await loadBookSettings();
       await loadPhotos();
     });
 
@@ -550,6 +635,20 @@
   $("fileInput").addEventListener("change", async e => {
     await uploadFiles(e.target.files);
     e.target.value = "";
+  });
+
+  $("bookTitle").addEventListener("blur", saveBookTitle);
+  $("bookTitle").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.currentTarget.blur(); } });
+
+  $("viewerClose").addEventListener("click", closeViewer);
+  $("viewerPrev").addEventListener("click", () => moveViewer(-1));
+  $("viewerNext").addEventListener("click", () => moveViewer(1));
+  $("viewer").addEventListener("click", e => { if (e.target === $("viewer")) closeViewer(); });
+  document.addEventListener("keydown", e => {
+    if ($("viewer").classList.contains("hidden")) return;
+    if (e.key === "Escape") closeViewer();
+    if (e.key === "ArrowLeft") moveViewer(-1);
+    if (e.key === "ArrowRight") moveViewer(1);
   });
 
   $("authButton").addEventListener("click", () => {
