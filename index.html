@@ -113,7 +113,7 @@
 </head>
 <body>
 <div class="app">
-  <header class="topbar"><div class="brand"><div class="brand-mark">B</div><div class="book-switcher"><select id="bookSelect" aria-label="Select book"></select><button class="btn icon" id="newBookButton" title="New book">＋</button></div><div><div class="brand-title">Digital Book</div><div class="brand-meta" id="syncStatus"><span class="status-dot"></span>Cloud synced</div></div></div><div class="actions"><div class="account" id="accountEmail"></div><div class="toolbar-group"><button class="btn" id="discoverButton" title="Discover">⌕</button><button class="btn" id="libraryButton" title="My Books">▦</button><button class="btn" id="readButton" title="Read">📖</button></div><div class="toolbar-group"><div class="book-menu"><button class="btn" id="bookMenuButton">Book ▾</button><div id="bookMenuPanel" class="book-menu-panel hidden"><button class="menu-item" id="editBookButton">✎ <span>Edit title & details</span></button><button class="menu-item" id="coverButton">▣ <span>Add / change cover</span></button><button class="menu-item" id="visibilityButton">◉ <span>Publish</span></button><button class="menu-item" id="bookmarksButton">🔖 <span>Bookmarks</span></button><button class="menu-item danger" id="deleteBookButton">⌫ <span>Delete this book</span></button></div></div><button class="btn" id="themeButton" title="Light / dark mode">☼</button></div><button class="btn primary" id="headerUpload">＋ Photos</button><input id="coverInput" type="file" accept="image/*" class="hidden"></div></header>
+  <header class="topbar"><div class="brand"><div class="brand-mark">B</div><div class="book-switcher"><select id="bookSelect" aria-label="Select book"></select><button class="btn icon" id="newBookButton" title="New book">＋</button></div><div><div class="brand-title">Digital Book</div><div class="brand-meta" id="syncStatus"><span class="status-dot"></span>Cloud synced</div></div></div><div class="actions"><div class="account" id="accountEmail"></div><div class="toolbar-group"><button class="btn" id="profileButton" title="Profile">👤 Profile</button><button class="btn" id="authButton" title="Log in or log out">Log in</button></div><div class="toolbar-group"><button class="btn" id="discoverButton" title="Discover">⌕</button><button class="btn" id="libraryButton" title="My Books">▦</button><button class="btn" id="readButton" title="Read">📖</button></div><div class="toolbar-group"><div class="book-menu"><button class="btn" id="bookMenuButton">Book ▾</button><div id="bookMenuPanel" class="book-menu-panel hidden"><button class="menu-item" id="editBookButton">✎ <span>Edit title & details</span></button><button class="menu-item" id="coverButton">▣ <span>Add / change cover</span></button><button class="menu-item" id="visibilityButton">◉ <span>Publish</span></button><button class="menu-item" id="bookmarksButton">🔖 <span>Bookmarks</span></button><button class="menu-item danger" id="deleteBookButton">⌫ <span>Delete this book</span></button></div></div><button class="btn" id="themeButton" title="Light / dark mode">☼</button></div><button class="btn primary" id="headerUpload">＋ Photos</button><input id="coverInput" type="file" accept="image/*" class="hidden"></div></header>
 
   <main>
     <section class="discover" id="discoverSection">
@@ -158,7 +158,9 @@
   </main>
 </div>
 
-<div id="bookEditModal" class="modal-backdrop hidden"><div class="modal"><h2>Edit book</h2><p>Change the title, author, and description in one place.</p><div class="field"><label for="editBookTitle">Book name</label><input id="editBookTitle" maxlength="120"></div><div class="field"><label for="editBookAuthor">Author / creator</label><input id="editBookAuthor" maxlength="160"></div><div class="field"><label for="editBookDescription">Description</label><input id="editBookDescription" maxlength="1000"></div><div class="modal-actions"><button class="btn" id="bookEditCancel">Cancel</button><button class="btn primary" id="bookEditSave">Save</button></div></div></div><div id="bookmarksModal" class="modal-backdrop hidden"><div class="modal" style="width:min(560px,100%)"><h2>Bookmarks</h2><p>Saved pages for this book.</p><div id="bookmarkList" class="bookmark-list"></div><div class="modal-actions"><button class="btn" id="bookmarksClose">Close</button></div></div></div><div id="authModal" class="modal-backdrop hidden">
+<div id="bookEditModal" class="modal-backdrop hidden"><div class="modal"><h2>Edit book</h2><p>Change the title, author, and description in one place.</p><div class="field"><label for="editBookTitle">Book name</label><input id="editBookTitle" maxlength="120"></div><div class="field"><label for="editBookAuthor">Author / creator</label><input id="editBookAuthor" maxlength="160"></div><div class="field"><label for="editBookDescription">Description</label><input id="editBookDescription" maxlength="1000"></div><div class="modal-actions"><button class="btn" id="bookEditCancel">Cancel</button><button class="btn primary" id="bookEditSave">Save</button></div></div></div><div id="bookmarksModal" class="modal-backdrop hidden"><div class="modal" style="width:min(560px,100%)"><h2>Bookmarks</h2><p>Saved pages for this book.</p><div id="bookmarkList" class="bookmark-list"></div><div class="modal-actions"><button class="btn" id="bookmarksClose">Close</button></div></div></div><div id="profileModal" class="modal-backdrop hidden"><div class="modal"><h2>Profile</h2><p>Your account information and session controls.</p><div class="field"><label for="profileEmail">Email</label><input id="profileEmail" type="email" readonly></div><div class="field"><label for="profileName">Display name</label><input id="profileName" maxlength="80" placeholder="Your name"></div><div id="profileStatus" class="auth-message" role="status"></div><div class="modal-actions"><button class="btn" id="profileCancel">Close</button><button class="btn" id="profileLogout">Log out</button><button class="btn primary" id="profileSave">Save</button></div></div></div>
+<div id="photoDetailsModal" class="modal-backdrop hidden"><div class="modal"><h2>Photo details</h2><div class="field"><label>File</label><input id="photoDetailsFilename" readonly></div><div class="field"><label>Book</label><input id="photoDetailsBook" readonly></div><div class="field"><label>Section</label><input id="photoDetailsSection" readonly></div><div class="field"><label>Caption</label><input id="photoDetailsCaption" maxlength="500"></div><div id="photoDetailsMeta" class="auth-message"></div><div class="modal-actions"><button class="btn" id="photoDetailsClose">Close</button><button class="btn" id="photoDetailsDownload">Download</button><button class="btn danger" id="photoDetailsDelete">Delete photo</button><button class="btn primary" id="photoDetailsSave">Save caption</button></div></div></div>
+<div id="authModal" class="modal-backdrop hidden">
   <div class="modal">
     <h2 id="authTitle">Log in</h2>
     <p id="authDescription">Use your account to access the same book from your phone, Mac, tablet, or another computer.</p>
@@ -264,7 +266,7 @@
     publicBook: null,
     publicSections: [],
     publicPhotos: [],
-    readerMode: "private", favorites: new Set(), bookmarks: [], theme: localStorage.getItem("digital-book:theme") || "dark", readerDirection: 0
+    profileName: "", detailPhotoId: null, readerMode: "private", favorites: new Set(), bookmarks: [], theme: localStorage.getItem("digital-book:theme") || "dark", readerDirection: 0
   };
 
   const $ = (id) => document.getElementById(id);
@@ -287,6 +289,7 @@
   function updateHeader() {
     $("accountEmail").textContent = state.user ? state.user.email : "";
     $("authButton").textContent = state.user ? "Log out" : "Log in";
+    $("profileButton").textContent = state.user ? "👤 Profile" : "👤 Profile";
     $("syncStatus").innerHTML = state.user
       ? '<span class="status-dot"></span>Cloud synced'
       : '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff9f0a;margin-right:5px"></span>Not signed in';
@@ -905,6 +908,12 @@
     }
   }
 
+  function openProfile(){if(!state.user){openAuth("login");return}const u=state.user;$("profileEmail").value=u.email||"";$("profileName").value=u.user_metadata?.display_name||u.user_metadata?.full_name||"";$("profileStatus").textContent="Signed in";$("profileModal").classList.remove("hidden")}
+  async function saveProfile(){if(!state.user)return;const name=$("profileName").value.trim().slice(0,80);const {data,error}=await supabaseClient.auth.updateUser({data:{display_name:name}});if(error){$("profileStatus").textContent=error.message;return}state.user=data.user||state.user;$("profileStatus").textContent="Profile saved.";updateHeader()}
+  function openPhotoDetails(id){const photo=state.photos.find(p=>p.id===id);if(!photo)return;state.detailPhotoId=id;const book=state.books.find(b=>b.id===state.currentBookId);const section=state.sections.find(s=>s.id===photo.section_id);$("photoDetailsFilename").value=photo.filename||"";$("photoDetailsBook").value=book?.title||"Current book";$("photoDetailsSection").value=section?.name||"All sections";$("photoDetailsCaption").value=photo.caption||"";$("photoDetailsMeta").textContent="Added "+new Date(photo.created_at).toLocaleString()+" · position "+(photo.position+1);$("photoDetailsModal").classList.remove("hidden")}
+  function closePhotoDetails(){$("photoDetailsModal").classList.add("hidden");state.detailPhotoId=null}
+  async function savePhotoDetails(){const photo=state.photos.find(p=>p.id===state.detailPhotoId);if(!photo||!state.user)return;await saveCaption(photo,$("photoDetailsCaption").value);$("photoDetailsModal").classList.add("hidden");state.detailPhotoId=null;render()}
+  async function deletePhotoFromDetails(){const id=state.detailPhotoId;if(!id)return;closePhotoDetails();await deletePhoto(id)}
   async function logout() {
     if (!supabaseClient) return;
     const {error}=await supabaseClient.auth.signOut();
@@ -1142,7 +1151,7 @@
         <div class="photo-frame">
           <img src="${photo.url}" alt="${escapeHtml(photo.filename)}" loading="lazy">
           <div class="photo-actions">
-            <button class="mini download" title="Download photo" aria-label="Download photo">↓</button><button class="mini delete" title="Delete photo" aria-label="Delete photo">×</button>
+            <button class="mini details" title="Photo details" aria-label="Photo details">i</button><button class="mini download" title="Download photo" aria-label="Download photo">↓</button><button class="mini delete title="Delete photo" aria-label="Delete photo">×</button>
           </div>
         </div>
         <div class="filename">${escapeHtml(photo.filename)}</div>
@@ -1161,7 +1170,7 @@
       caption.addEventListener("blur", () => saveCaption(photo, caption.value));
       card.appendChild(caption);
 
-      card.querySelector(".download").addEventListener("click", e => {e.stopPropagation();downloadPhoto(photo)});card.querySelector(".delete").addEventListener("click", e => {
+      card.querySelector(".details").addEventListener("click", e => {e.stopPropagation();openPhotoDetails(photo.id)});card.querySelector(".download").addEventListener("click", e => {e.stopPropagation();downloadPhoto(photo)});card.querySelector(".delete").addEventListener("click", e => {
         e.stopPropagation();
         deletePhoto(photo.id);
       });
@@ -1254,6 +1263,7 @@
       supabaseClient.auth.onAuthStateChange((event, session) => {
       state.user=session?.user||null;
       updateHeader();
+      if (!state.user) { state.profileName=""; }
       setTimeout(async()=>{
         try{
           if(state.user){
@@ -1409,6 +1419,16 @@
   dropZone.addEventListener("drop", async e => {
     if (state.user) await uploadFiles(e.dataTransfer.files);
   });
+$("profileButton").addEventListener("click",openProfile);
+  $("profileCancel").addEventListener("click",()=>$("profileModal").classList.add("hidden"));
+  $("profileLogout").addEventListener("click",async()=>{await logout();$("profileModal").classList.add("hidden")});
+  $("profileSave").addEventListener("click",saveProfile);
+  $("profileModal").addEventListener("click",e=>{if(e.target===$("profileModal"))$("profileModal").classList.add("hidden")});
+  $("photoDetailsClose").addEventListener("click",closePhotoDetails);
+  $("photoDetailsSave").addEventListener("click",savePhotoDetails);
+  $("photoDetailsDownload").addEventListener("click",()=>{const p=state.photos.find(x=>x.id===state.detailPhotoId);if(p)downloadPhoto(p)});
+  $("photoDetailsDelete").addEventListener("click",deletePhotoFromDetails);
+  $("photoDetailsModal").addEventListener("click",e=>{if(e.target===$("photoDetailsModal"))closePhotoDetails()});
 
   init();
 </script>
