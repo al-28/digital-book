@@ -19,26 +19,26 @@ drop policy if exists "Users can read their own photos" on public.photos;
 create policy "Users can read their own photos"
 on public.photos for select
 to authenticated
-using (auth.uid() = user_id);
+using ((select auth.uid()) = user_id);
 
 drop policy if exists "Users can insert their own photos" on public.photos;
 create policy "Users can insert their own photos"
 on public.photos for insert
 to authenticated
-with check (auth.uid() = user_id);
+with check ((select auth.uid()) = user_id);
 
 drop policy if exists "Users can update their own photos" on public.photos;
 create policy "Users can update their own photos"
 on public.photos for update
 to authenticated
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
+using ((select auth.uid()) = user_id)
+with check ((select auth.uid()) = user_id);
 
 drop policy if exists "Users can delete their own photos" on public.photos;
 create policy "Users can delete their own photos"
 on public.photos for delete
 to authenticated
-using (auth.uid() = user_id);
+using ((select auth.uid()) = user_id);
 
 insert into storage.buckets (id, name, public)
 values ('photos', 'photos', false)
@@ -50,7 +50,7 @@ on storage.objects for insert
 to authenticated
 with check (
   bucket_id = 'photos'
-  and (storage.foldername(name))[1] = auth.uid()::text
+  and (storage.foldername(name))[1] = (select auth.uid())::text
 );
 
 drop policy if exists "Users can view their own book photos" on storage.objects;
@@ -59,7 +59,7 @@ on storage.objects for select
 to authenticated
 using (
   bucket_id = 'photos'
-  and (storage.foldername(name))[1] = auth.uid()::text
+  and (storage.foldername(name))[1] = (select auth.uid())::text
 );
 
 drop policy if exists "Users can delete their own book photos" on storage.objects;
@@ -68,7 +68,7 @@ on storage.objects for delete
 to authenticated
 using (
   bucket_id = 'photos'
-  and (storage.foldername(name))[1] = auth.uid()::text
+  and (storage.foldername(name))[1] = (select auth.uid())::text
 );
 
 drop policy if exists "Users can update their own book photos" on storage.objects;
@@ -77,11 +77,11 @@ on storage.objects for update
 to authenticated
 using (
   bucket_id = 'photos'
-  and (storage.foldername(name))[1] = auth.uid()::text
+  and (storage.foldername(name))[1] = (select auth.uid())::text
 )
 with check (
   bucket_id = 'photos'
-  and (storage.foldername(name))[1] = auth.uid()::text
+  and (storage.foldername(name))[1] = (select auth.uid())::text
 );
 
 create index if not exists photos_user_position_idx
@@ -100,13 +100,13 @@ create table if not exists public.book_settings (
 alter table public.book_settings enable row level security;
 
 drop policy if exists "Users can read their own book settings" on public.book_settings;
-create policy "Users can read their own book settings" on public.book_settings for select to authenticated using (auth.uid() = user_id);
+create policy "Users can read their own book settings" on public.book_settings for select to authenticated using ((select auth.uid()) = user_id);
 
 drop policy if exists "Users can insert their own book settings" on public.book_settings;
-create policy "Users can insert their own book settings" on public.book_settings for insert to authenticated with check (auth.uid() = user_id);
+create policy "Users can insert their own book settings" on public.book_settings for insert to authenticated with check ((select auth.uid()) = user_id);
 
 drop policy if exists "Users can update their own book settings" on public.book_settings;
-create policy "Users can update their own book settings" on public.book_settings for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "Users can update their own book settings" on public.book_settings for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
 
 -- V1.2: multiple books and sections
 create table if not exists public.books (
@@ -118,7 +118,7 @@ create table if not exists public.books (
 );
 alter table public.books enable row level security;
 drop policy if exists "Users can manage their own books" on public.books;
-create policy "Users can manage their own books" on public.books for all to authenticated using (auth.uid()=user_id) with check (auth.uid()=user_id);
+create policy "Users can manage their own books" on public.books for all to authenticated using ((select auth.uid())=user_id) with check ((select auth.uid())=user_id);
 
 create table if not exists public.sections (
  id uuid primary key default gen_random_uuid(),
@@ -130,8 +130,8 @@ create table if not exists public.sections (
 alter table public.sections enable row level security;
 drop policy if exists "Users can manage their own sections" on public.sections;
 create policy "Users can manage their own sections" on public.sections for all to authenticated
-using (exists(select 1 from public.books b where b.id=book_id and b.user_id=auth.uid()))
-with check (exists(select 1 from public.books b where b.id=book_id and b.user_id=auth.uid()));
+using (exists(select 1 from public.books b where b.id=book_id and b.user_id=(select auth.uid())))
+with check (exists(select 1 from public.books b where b.id=book_id and b.user_id=(select auth.uid())));
 
 alter table public.photos add column if not exists book_id uuid references public.books(id) on delete cascade;
 alter table public.photos add column if not exists section_id uuid references public.sections(id) on delete set null;
@@ -154,21 +154,28 @@ create policy "Users can insert their own photos"
 on public.photos for insert
 to authenticated
 with check (
-  auth.uid() = user_id
-  and exists (select 1 from public.books b where b.id = book_id and b.user_id = auth.uid())
-  and (section_id is null or exists (
-    select 1 from public.sections s where s.id = section_id and s.book_id = book_id
-  ))
+  (select auth.uid()) = user_id
+  and exists (select 1 from public.books b where b.id = book_id and b.user_id = (select auth.uid()))
+  and (
+    section_id is null
+    or exists (
+      select 1
+      from public.books b2
+      join public.sections s2 on s2.book_id = b2.id
+      where b2.id = photos.book_id
+        and s2.id = photos.section_id
+    )
+  )
 );
 
 drop policy if exists "Users can update their own photos" on public.photos;
 create policy "Users can update their own photos"
 on public.photos for update
 to authenticated
-using (auth.uid() = user_id)
+using ((select auth.uid()) = user_id)
 with check (
-  auth.uid() = user_id
-  and exists (select 1 from public.books b where b.id = book_id and b.user_id = auth.uid())
+  (select auth.uid()) = user_id
+  and exists (select 1 from public.books b where b.id = book_id and b.user_id = (select auth.uid()))
   and (section_id is null or exists (
     select 1 from public.sections s where s.id = section_id and s.book_id = book_id
   ))
@@ -189,8 +196,8 @@ drop policy if exists "Anyone can read published books" on public.books;
 
 create policy "Users can manage their own books"
 on public.books for all to authenticated
-using (auth.uid() = user_id)
-with check (auth.uid() = user_id);
+using ((select auth.uid()) = user_id)
+with check ((select auth.uid()) = user_id);
 
 create policy "Anyone can read published books"
 on public.books for select
