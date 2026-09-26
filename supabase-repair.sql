@@ -95,8 +95,8 @@ create policy "Users can manage their own books"
 on public.books
 for all
 to authenticated
-using ((select auth.uid()) = user_id)
-with check ((select auth.uid()) = user_id);
+using ((select (select auth.uid())) = user_id)
+with check ((select (select auth.uid())) = user_id);
 
 create policy "Anyone can read published books"
 on public.books
@@ -116,14 +116,14 @@ using (
   exists (
     select 1 from public.books b
     where b.id = sections.book_id
-      and b.user_id = (select auth.uid())
+      and b.user_id = (select (select auth.uid()))
   )
 )
 with check (
   exists (
     select 1 from public.books b
     where b.id = sections.book_id
-      and b.user_id = (select auth.uid())
+      and b.user_id = (select (select auth.uid()))
   )
 );
 
@@ -150,25 +150,27 @@ create policy "Users can read their own photos"
 on public.photos
 for select
 to authenticated
-using ((select auth.uid()) = user_id);
+using ((select (select auth.uid())) = user_id);
 
 create policy "Users can insert their own photos"
 on public.photos
 for insert
 to authenticated
 with check (
-  (select auth.uid()) = user_id
+  (select (select auth.uid())) = user_id
   and exists (
     select 1 from public.books b
     where b.id = photos.book_id
-      and b.user_id = (select auth.uid())
+      and b.user_id = (select (select auth.uid()))
   )
   and (
-    section_id is null
+    photos.section_id is null
     or exists (
-      select 1 from public.sections s
-      where s.id = photos.section_id
-        and s.book_id = photos.book_id
+      select 1
+      from public.books b2
+      join public.sections s2 on s2.book_id = b2.id
+      where b2.id = photos.book_id
+        and s2.id = photos.section_id
     )
   )
 );
@@ -177,13 +179,13 @@ create policy "Users can update their own photos"
 on public.photos
 for update
 to authenticated
-using ((select auth.uid()) = user_id)
+using ((select (select auth.uid())) = user_id)
 with check (
-  (select auth.uid()) = user_id
+  (select (select auth.uid())) = user_id
   and exists (
     select 1 from public.books b
     where b.id = photos.book_id
-      and b.user_id = (select auth.uid())
+      and b.user_id = (select (select auth.uid()))
   )
   and (
     section_id is null
@@ -199,7 +201,7 @@ create policy "Users can delete their own photos"
 on public.photos
 for delete
 to authenticated
-using ((select auth.uid()) = user_id);
+using ((select (select auth.uid())) = user_id);
 
 create policy "Anyone can read photos from published books"
 on public.photos
@@ -220,16 +222,16 @@ drop policy if exists "Users can update their own book settings" on public.book_
 
 create policy "Users can read their own book settings"
 on public.book_settings for select to authenticated
-using ((select auth.uid()) = user_id);
+using ((select (select auth.uid())) = user_id);
 
 create policy "Users can insert their own book settings"
 on public.book_settings for insert to authenticated
-with check ((select auth.uid()) = user_id);
+with check ((select (select auth.uid())) = user_id);
 
 create policy "Users can update their own book settings"
 on public.book_settings for update to authenticated
-using ((select auth.uid()) = user_id)
-with check ((select auth.uid()) = user_id);
+using ((select (select auth.uid())) = user_id)
+with check ((select (select auth.uid())) = user_id);
 
 -- STORAGE
 insert into storage.buckets (id,name,public)
@@ -247,7 +249,7 @@ on storage.objects for insert
 to authenticated
 with check (
   bucket_id = 'photos'
-  and (storage.foldername(name))[1] = (select auth.uid())::text
+  and (storage.foldername(name))[1] = (select (select auth.uid()))::text
 );
 
 create policy "Users can view their own book photos"
@@ -255,7 +257,7 @@ on storage.objects for select
 to authenticated
 using (
   bucket_id = 'photos'
-  and (storage.foldername(name))[1] = (select auth.uid())::text
+  and (storage.foldername(name))[1] = (select (select auth.uid()))::text
 );
 
 create policy "Users can update their own book photos"
@@ -263,11 +265,11 @@ on storage.objects for update
 to authenticated
 using (
   bucket_id = 'photos'
-  and (storage.foldername(name))[1] = (select auth.uid())::text
+  and (storage.foldername(name))[1] = (select (select auth.uid()))::text
 )
 with check (
   bucket_id = 'photos'
-  and (storage.foldername(name))[1] = (select auth.uid())::text
+  and (storage.foldername(name))[1] = (select (select auth.uid()))::text
 );
 
 create policy "Users can delete their own book photos"
@@ -275,7 +277,7 @@ on storage.objects for delete
 to authenticated
 using (
   bucket_id = 'photos'
-  and (storage.foldername(name))[1] = (select auth.uid())::text
+  and (storage.foldername(name))[1] = (select (select auth.uid()))::text
 );
 
 -- Public signed URLs: published photo files AND published cover files.
