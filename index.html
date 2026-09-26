@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b0c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Digital Book</title>
+  <style>
+    :root{--bg:#0b0b0c;--surface:#141416;--surface2:#1b1b1e;--line:#2a2a2e;--text:#f5f5f7;--muted:#96969f;--accent:#fff;--danger:#ff453a;--radius:18px}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Inter,Helvetica,Arial,sans-serif}
+    button,input{font:inherit}
+    button{cursor:pointer}
+    .app{min-height:100vh}
+    .topbar{position:sticky;top:0;z-index:20;height:72px;padding:0 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(11,11,12,.82);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,.08)}
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .brand-mark{width:36px;height:36px;border-radius:10px;background:#fff;color:#111;display:grid;place-items:center;font-weight:800}
+    .brand-text{min-width:0}.brand-title{font-weight:650;letter-spacing:-.3px}.brand-meta{font-size:12px;color:var(--muted);margin-top:2px}
+    .actions{display:flex;align-items:center;gap:8px}
+    .btn{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:999px;padding:10px 15px;font-weight:600;transition:.16s transform,.16s background,.16s opacity}
+    .btn:hover{background:var(--surface2);transform:translateY(-1px)}
+    .btn.primary{background:#fff;color:#111;border-color:#fff}.btn.primary:hover{background:#eee}
+    .btn.danger{color:#ff6961}.btn.icon{width:42px;height:42px;padding:0;display:grid;place-items:center}
+    .hidden{display:none!important}
+    main{width:min(1120px,100%);margin:auto;padding:34px 24px 100px}
+    .hero{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:28px}
+    .hero h1{margin:0;font-size:clamp(30px,5vw,54px);line-height:1;letter-spacing:-2.2px}
+    .hero p{margin:10px 0 0;color:var(--muted);font-size:15px}
+    .upload-zone{border:1px dashed #3b3b40;border-radius:var(--radius);padding:42px 24px;text-align:center;background:linear-gradient(180deg,#111113,#0d0d0e);transition:.2s border,.2s background}
+    .upload-zone.dragover{border-color:#fff;background:#151517}
+    .upload-icon{width:54px;height:54px;border-radius:16px;background:#1c1c1f;display:grid;place-items:center;margin:0 auto 15px;font-size:25px}
+    .upload-zone h2{margin:0;font-size:20px}.upload-zone p{margin:8px 0 18px;color:var(--muted)}
+    .book{margin-top:42px}
+    .book-grid{display:flex;flex-direction:column;gap:70px}
+    .photo-card{position:relative}
+    .photo-card.dragging{opacity:.35}
+    .photo-card.drop-target{outline:2px solid #fff;outline-offset:10px;border-radius:20px}
+    .photo-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px;color:var(--muted);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+    .drag-label{display:flex;align-items:center;gap:8px}
+    .grip{font-size:16px;opacity:.7}
+    .photo-frame{position:relative;overflow:hidden;border-radius:16px;background:#151517;box-shadow:0 18px 55px rgba(0,0,0,.24)}
+    .photo-frame img{display:block;width:100%;height:auto;max-height:86vh;object-fit:contain;background:#151517}
+    .photo-actions{position:absolute;top:12px;right:12px;display:flex;gap:8px;opacity:0;transition:opacity .16s}
+    .photo-frame:hover .photo-actions,.photo-frame:focus-within .photo-actions{opacity:1}
+    .mini{width:38px;height:38px;padding:0;border:1px solid rgba(255,255,255,.18);border-radius:50%;background:rgba(0,0,0,.68);color:#fff;display:grid;place-items:center}
+    .mini:hover{background:rgba(0,0,0,.9)}.mini.delete:hover{background:var(--danger);border-color:var(--danger)}
+    .filename{margin-top:10px;color:#666;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .empty{text-align:center;padding:95px 20px;color:var(--muted)}
+    .empty h2{color:#ddd;margin:0 0 8px;font-size:23px}
+    .empty p{margin:0 auto 18px;max-width:460px;line-height:1.5}
+    .loading{padding:70px 20px;text-align:center;color:var(--muted)}
+    .spinner{width:28px;height:28px;border:2px solid #333;border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}@keyframes spin{to{transform:rotate(360deg)}}
+    .toast{position:fixed;left:50%;bottom:24px;z-index:100;transform:translate(-50%,20px);background:#f5f5f7;color:#111;border-radius:999px;padding:11px 17px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:.2s;box-shadow:0 10px 30px rgba(0,0,0,.35)}.toast.show{opacity:1;transform:translate(-50%,0)}
+    .modal-backdrop{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);display:grid;place-items:center;padding:20px}
+    .modal{width:min(420px,100%);background:#161618;border:1px solid #303034;border-radius:24px;padding:25px;box-shadow:0 30px 100px rgba(0,0,0,.55)}
+    .modal h2{margin:0 0 6px;font-size:25px}.modal p{margin:0 0 20px;color:var(--muted);font-size:14px;line-height:1.45}
+    .field{margin-bottom:12px}.field label{display:block;font-size:12px;color:#aaa;margin-bottom:6px}.field input{width:100%;border:1px solid #343438;background:#0e0e10;color:#fff;border-radius:12px;padding:12px 13px;outline:none}.field input:focus{border-color:#777}
+    .modal-actions{display:flex;gap:8px;margin-top:18px}.modal-actions .btn{flex:1}
+    .account{font-size:12px;color:var(--muted);max-width:150px;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#34c759;margin-right:5px}
+    @media(max-width:650px){
+      .topbar{height:64px;padding:0 14px}.brand-mark{width:32px;height:32px}.brand-meta{display:none}.brand-title{font-size:14px}
+      .actions .account{display:none}.actions .btn{padding:9px 12px}
+      main{padding:24px 12px 70px}.hero{align-items:flex-start;flex-direction:column;margin-bottom:20px}.hero h1{font-size:38px}
+      .upload-zone{padding:34px 18px}.book-grid{gap:48px}.photo-frame{border-radius:10px}.photo-actions{opacity:1}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">B</div>
+      <div>
+        <div class="brand-title">Digital Book</div>
+        <div class="brand-meta" id="syncStatus"><span class="status-dot"></span>Cloud synced</div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="account" id="accountEmail"></div>
+      <button class="btn" id="authButton">Log in</button>
+      <button class="btn primary" id="headerUpload">＋ Add Photos</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <h1>My Book</h1>
+        <p id="countText">Your photos, in the order you added them.</p>
+      </div>
+    </section>
+
+    <section class="upload-zone" id="dropZone">
+      <div class="upload-icon">＋</div>
+      <h2>Add to the end of your book</h2>
+      <p>Choose photos or drag them here. They will be appended in order.</p>
+      <button class="btn primary" id="chooseButton">Choose Photos</button>
+      <input id="fileInput" type="file" accept="image/*" multiple class="hidden">
+    </section>
+
+    <section class="book">
+      <div id="loading" class="loading hidden"><div class="spinner"></div>Loading your book…</div>
+      <div id="empty" class="empty hidden">
+        <h2>Your book is empty.</h2>
+        <p>Add your first photos above. You can reorder or delete them whenever you want.</p>
+      </div>
+      <div id="bookGrid" class="book-grid"></div>
+    </section>
+  </main>
+</div>
+
+<div id="authModal" class="modal-backdrop hidden">
+  <div class="modal">
+    <h2 id="authTitle">Log in</h2>
+    <p id="authDescription">Use your account to access the same book from your phone, Mac, tablet, or another computer.</p>
+    <div class="field"><label>Email</label><input id="emailInput" type="email" autocomplete="email" placeholder="you@example.com"></div>
+    <div class="field"><label>Password</label><input id="passwordInput" type="password" autocomplete="current-password" placeholder="At least 6 characters"></div>
+    <div class="modal-actions">
+      <button class="btn" id="authCancel">Cancel</button>
+      <button class="btn primary" id="authSubmit">Log in</button>
+    </div>
+    <button class="btn" id="authSwitch" style="width:100%;margin-top:10px">Create an account instead</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  /*
+    ================================================================
+    DIGITAL BOOK — CLOUD V1
+    ================================================================
+    1. Create a Supabase project.
+    2. Run supabase-schema.sql from this repository.
+    3. Put your project's URL and anon key below.
+    4. Deploy this file to GitHub Pages.
+    ================================================================
+  */
+
+  const SUPABASE_URL = "YOUR_SUPABASE_URL";
+  const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+
+  const CONFIGURED =
+    !SUPABASE_URL.startsWith("YOUR_") &&
+    !SUPABASE_ANON_KEY.startsWith("YOUR_");
+
+  const supabaseClient = CONFIGURED
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
+
+  const state = {
+    user: null,
+    photos: [],
+    authMode: "login",
+    draggingId: null
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  function toast(message) {
+    const el = $("toast");
+    el.textContent = message;
+    el.classList.add("show");
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => el.classList.remove("show"), 2600);
+  }
+
+  function setLoading(value) {
+    $("loading").classList.toggle("hidden", !value);
+  }
+
+  function updateHeader() {
+    $("accountEmail").textContent = state.user ? state.user.email : "";
+    $("authButton").textContent = state.user ? "Log out" : "Log in";
+    $("syncStatus").innerHTML = state.user
+      ? '<span class="status-dot"></span>Cloud synced'
+      : '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff9f0a;margin-right:5px"></span>Not signed in';
+  }
+
+  function updateCount() {
+    const n = state.photos.length;
+    $("countText").textContent = n
+      ? `${n} ${n === 1 ? "photo" : "photos"} · drag to reorder`
+      : "Your photos, in the order you added them.";
+  }
+
+  function openAuth(mode = "login") {
+    state.authMode = mode;
+    $("authModal").classList.remove("hidden");
+    $("authTitle").textContent = mode === "login" ? "Log in" : "Create your account";
+    $("authDescription").textContent = mode === "login"
+      ? "Use your account to access the same book from your phone, Mac, tablet, or another computer."
+      : "Your photos will belong to your account and remain private.";
+    $("authSubmit").textContent = mode === "login" ? "Log in" : "Create account";
+    $("authSwitch").textContent = mode === "login" ? "Create an account instead" : "I already have an account";
+  }
+
+  function closeAuth() {
+    $("authModal").classList.add("hidden");
+  }
+
+  async function authenticate() {
+    if (!supabaseClient) {
+      toast("Add your Supabase credentials to index.html first.");
+      return;
+    }
+
+    const email = $("emailInput").value.trim();
+    const password = $("passwordInput").value;
+
+    if (!email || !password) {
+      toast("Enter your email and password.");
+      return;
+    }
+
+    $("authSubmit").disabled = true;
+
+    try {
+      const result = state.authMode === "login"
+        ? await supabaseClient.auth.signInWithPassword({ email, password })
+        : await supabaseClient.auth.signUp({ email, password });
+
+      if (result.error) throw result.error;
+
+      if (state.authMode === "login") {
+        toast("You're logged in.");
+        closeAuth();
+      } else {
+        toast("Account created. Check your email if confirmation is enabled.");
+        closeAuth();
+      }
+    } catch (error) {
+      toast(error.message || "Authentication failed.");
+    } finally {
+      $("authSubmit").disabled = false;
+    }
+  }
+
+  async function logout() {
+    if (!supabaseClient) return;
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) toast(error.message);
+  }
+
+  function extensionFor(file) {
+    const ext = file.name.includes(".") ? file.name.split(".").pop().toLowerCase() : "jpg";
+    return /^[a-z0-9]+$/.test(ext) ? ext : "jpg";
+  }
+
+  async function uploadFiles(files) {
+    if (!state.user) {
+      openAuth("login");
+      toast("Log in first so your book works on every device.");
+      return;
+    }
+
+    const imageFiles = [...files].filter(f => f.type.startsWith("image/"));
+    if (!imageFiles.length) return;
+
+    setLoading(true);
+
+    try {
+      let nextPosition = state.photos.length;
+
+      for (const file of imageFiles) {
+        const id = crypto.randomUUID();
+        const path = `${state.user.id}/${id}.${extensionFor(file)}`;
+
+        const upload = await supabaseClient.storage
+          .from("photos")
+          .upload(path, file, {
+            cacheControl: "31536000",
+            upsert: false,
+            contentType: file.type || "image/jpeg"
+          });
+
+        if (upload.error) throw upload.error;
+
+        const insert = await supabaseClient
+          .from("photos")
+          .insert({
+            id,
+            user_id: state.user.id,
+            storage_path: path,
+            filename: file.name,
+            position: nextPosition,
+            created_at: new Date().toISOString()
+          });
+
+        if (insert.error) {
+          await supabaseClient.storage.from("photos").remove([path]);
+          throw insert.error;
+        }
+
+        nextPosition++;
+      }
+
+      toast(`${imageFiles.length} ${imageFiles.length === 1 ? "photo" : "photos"} added.`);
+      await loadPhotos();
+    } catch (error) {
+      console.error(error);
+      toast(error.message || "Upload failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadPhotos() {
+    if (!state.user) {
+      state.photos = [];
+      render();
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabaseClient
+        .from("photos")
+        .select("id,storage_path,filename,position,created_at")
+        .eq("user_id", state.user.id)
+        .order("position", { ascending: true })
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      const photos = data || [];
+
+      /*
+        Private storage requires signed URLs.
+        We request them individually so the database never needs to
+        expose the bucket publicly.
+      */
+      for (const photo of photos) {
+        const signed = await supabaseClient.storage
+          .from("photos")
+          .createSignedUrl(photo.storage_path, 60 * 60);
+
+        if (signed.error) {
+          console.error("Signed URL error:", signed.error);
+          photo.url = "";
+        } else {
+          photo.url = signed.data.signedUrl;
+        }
+      }
+
+      state.photos = photos;
+      render();
+    } catch (error) {
+      console.error(error);
+      toast(error.message || "Could not load your book.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function deletePhoto(id) {
+    const photo = state.photos.find(p => p.id === id);
+    if (!photo) return;
+
+    if (!confirm(`Delete “${photo.filename}” from your book?`)) return;
+
+    try {
+      const dbDelete = await supabaseClient
+        .from("photos")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", state.user.id);
+
+      if (dbDelete.error) throw dbDelete.error;
+
+      const storageDelete = await supabaseClient.storage
+        .from("photos")
+        .remove([photo.storage_path]);
+
+      if (storageDelete.error) console.warn("Storage cleanup:", storageDelete.error);
+
+      await normalizePositions();
+      toast("Photo deleted.");
+      await loadPhotos();
+    } catch (error) {
+      console.error(error);
+      toast(error.message || "Could not delete photo.");
+    }
+  }
+
+  async function normalizePositions() {
+    const updates = state.photos
+      .filter(p => p.id)
+      .map((p, index) => ({ id: p.id, user_id: state.user.id, position: index }));
+
+    for (const row of updates) {
+      const { error } = await supabaseClient
+        .from("photos")
+        .update({ position: row.position })
+        .eq("id", row.id)
+        .eq("user_id", row.user_id);
+
+      if (error) throw error;
+    }
+  }
+
+  async function reorder(draggedId, targetId) {
+    if (draggedId === targetId) return;
+
+    const from = state.photos.findIndex(p => p.id === draggedId);
+    const to = state.photos.findIndex(p => p.id === targetId);
+
+    if (from < 0 || to < 0) return;
+
+    const [moved] = state.photos.splice(from, 1);
+    state.photos.splice(to, 0, moved);
+
+    state.photos.forEach((photo, index) => photo.position = index);
+    render();
+
+    try {
+      await normalizePositions();
+      toast("Order saved.");
+    } catch (error) {
+      console.error(error);
+      toast("Order changed locally but could not be saved.");
+      await loadPhotos();
+    }
+  }
+
+  function render() {
+    updateHeader();
+    updateCount();
+
+    const grid = $("bookGrid");
+    const empty = $("empty");
+
+    grid.innerHTML = "";
+
+    if (!state.user) {
+      empty.classList.remove("hidden");
+      empty.innerHTML = `
+        <h2>Log in to open your book.</h2>
+        <p>Your photos are stored privately in the cloud so the same book can be opened from every device.</p>
+        <button class="btn primary" onclick="openAuth('login')">Log in</button>
+      `;
+      return;
+    }
+
+    if (!state.photos.length) {
+      empty.classList.remove("hidden");
+      return;
+    }
+
+    empty.classList.add("hidden");
+
+    state.photos.forEach((photo, index) => {
+      const card = document.createElement("article");
+      card.className = "photo-card";
+      card.draggable = true;
+      card.dataset.id = photo.id;
+
+      card.innerHTML = `
+        <div class="photo-head">
+          <div class="drag-label"><span class="grip">⠿</span> Photo ${index + 1}</div>
+          <div>Drag to move</div>
+        </div>
+        <div class="photo-frame">
+          <img src="${photo.url}" alt="${escapeHtml(photo.filename)}" loading="lazy">
+          <div class="photo-actions">
+            <button class="mini delete" title="Delete photo" aria-label="Delete photo">×</button>
+          </div>
+        </div>
+        <div class="filename">${escapeHtml(photo.filename)}</div>
+      `;
+
+      card.querySelector(".delete").addEventListener("click", e => {
+        e.stopPropagation();
+        deletePhoto(photo.id);
+      });
+
+      card.addEventListener("dragstart", () => {
+        state.draggingId = photo.id;
+        card.classList.add("dragging");
+      });
+
+      card.addEventListener("dragend", () => {
+        state.draggingId = null;
+        document.querySelectorAll(".drop-target").forEach(el => el.classList.remove("drop-target"));
+      });
+
+      card.addEventListener("dragover", e => {
+        e.preventDefault();
+        if (state.draggingId && state.draggingId !== photo.id) card.classList.add("drop-target");
+      });
+
+      card.addEventListener("dragleave", () => card.classList.remove("drop-target"));
+
+      card.addEventListener("drop", async e => {
+        e.preventDefault();
+        card.classList.remove("drop-target");
+        if (state.draggingId) await reorder(state.draggingId, photo.id);
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, char => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[char]));
+  }
+
+  async function init() {
+    if (!CONFIGURED) {
+      $("syncStatus").innerHTML = '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff9f0a;margin-right:5px"></span>Setup required';
+      $("empty").classList.remove("hidden");
+      $("empty").innerHTML = `
+        <h2>One-time setup required.</h2>
+        <p>Add your Supabase URL and anon key near the bottom of <strong>index.html</strong>, then reload the page.</p>
+      `;
+      return;
+    }
+
+    const { data } = await supabaseClient.auth.getSession();
+    state.user = data.session?.user || null;
+    updateHeader();
+    render();
+
+    supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+      state.user = session?.user || null;
+      updateHeader();
+      await loadPhotos();
+    });
+
+    if (state.user) await loadPhotos();
+  }
+
+  $("chooseButton").addEventListener("click", () => $("fileInput").click());
+  $("headerUpload").addEventListener("click", () => {
+    if (!state.user) {
+      openAuth("login");
+      return;
+    }
+    $("fileInput").click();
+  });
+
+  $("fileInput").addEventListener("change", async e => {
+    await uploadFiles(e.target.files);
+    e.target.value = "";
+  });
+
+  $("authButton").addEventListener("click", () => {
+    if (state.user) logout();
+    else openAuth("login");
+  });
+
+  $("authCancel").addEventListener("click", closeAuth);
+  $("authSubmit").addEventListener("click", authenticate);
+  $("authSwitch").addEventListener("click", () => {
+    openAuth(state.authMode === "login" ? "signup" : "login");
+  });
+
+  $("authModal").addEventListener("click", e => {
+    if (e.target === $("authModal")) closeAuth();
+  });
+
+  $("passwordInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") authenticate();
+  });
+
+  const dropZone = $("dropZone");
+
+  ["dragenter","dragover"].forEach(eventName => {
+    dropZone.addEventListener(eventName, e => {
+      e.preventDefault();
+      if (state.user) dropZone.classList.add("dragover");
+    });
+  });
+
+  ["dragleave","drop"].forEach(eventName => {
+    dropZone.addEventListener(eventName, e => {
+      e.preventDefault();
+      dropZone.classList.remove("dragover");
+    });
+  });
+
+  dropZone.addEventListener("drop", async e => {
+    if (state.user) await uploadFiles(e.dataTransfer.files);
+  });
+
+  init();
+</script>
+</body>
+</html>
