@@ -70,6 +70,9 @@ Then open the GitHub Pages URL.
 - Drag-and-drop reordering
 - Persistent ordering
 - Delete photos
+- Editable book title
+- Per-photo captions
+- Full-screen photo viewer with keyboard navigation
 - Responsive desktop/mobile interface
 - Same book across devices
 - Private storage with signed image URLs
@@ -77,6 +80,10 @@ Then open the GitHub Pages URL.
 ## Important
 
 The website cannot securely provide cross-device cloud storage using GitHub Pages alone. Supabase supplies the backend/database/storage while GitHub Pages supplies the frontend.
+
+## V1.1
+
+V1.1 adds an editable persistent book title, per-photo captions, and a full-screen viewer with previous/next navigation and Escape/arrow-key controls. Re-run the complete `supabase-schema.sql` in Supabase SQL Editor so the new `caption` column and `book_settings` table are created.
 
 ## Next planned features
 
