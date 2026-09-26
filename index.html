@@ -218,6 +218,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1"></script>
+<script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.117.1"><\/script>');}</script>
 <script>
   /*
     ================================================================
@@ -237,16 +238,26 @@
     !SUPABASE_URL.startsWith("YOUR_") &&
     !SUPABASE_ANON_KEY.startsWith("YOUR_");
 
-  const supabaseClient = CONFIGURED
-    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  let supabaseClient = null;
+  let supabaseInitError = null;
+  if (CONFIGURED) {
+    try {
+      if (!window.supabase || typeof window.supabase.createClient !== "function") {
+        throw new Error("Supabase JavaScript library did not load.");
+      }
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: {
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: true,
           lockAcquireTimeout: 5000
         }
-      })
-    : null;
+      });
+    } catch (error) {
+      supabaseInitError = error;
+      console.error("Supabase client initialization failed:", error);
+    }
+  }
 
   const state = {
     user: null,
@@ -734,6 +745,7 @@
   function openAuth(mode = "login") {
     state.authMode = mode;
     $("authModal").classList.remove("hidden");
+    setAuthBusy(false);
     updateAuthModeUI();
     setTimeout(() => $("emailInput").focus(), 0);
   }
@@ -1429,6 +1441,13 @@ $("profileButton").addEventListener("click",openProfile);
   $("photoDetailsDownload").addEventListener("click",()=>{const p=state.photos.find(x=>x.id===state.detailPhotoId);if(p)downloadPhoto(p)});
   $("photoDetailsDelete").addEventListener("click",deletePhotoFromDetails);
   $("photoDetailsModal").addEventListener("click",e=>{if(e.target===$("photoDetailsModal"))closePhotoDetails()});
+
+  window.addEventListener("error", event => {
+    console.error("Digital Book runtime error:", event.error || event.message);
+  });
+  window.addEventListener("unhandledrejection", event => {
+    console.error("Digital Book unhandled promise rejection:", event.reason);
+  });
 
   init();
 </script>
