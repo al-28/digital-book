@@ -1546,7 +1546,7 @@ $("favoritesButton").addEventListener("click",()=>openSaved("favorites"));$("boo
   window.__digitalBookReliableClickLayer=true;
   const actions={
     profileButton:()=>window.openProfile?.(),
-    authButton:()=>window.state?.user ? window.logout?.() : window.openAuth?.("login"),
+    authButton:()=>(typeof state!=="undefined" && state.user) ? window.logout?.() : window.openAuth?.("login"),
     discoverButton:()=>document.getElementById("discoverSection")?.scrollIntoView({behavior:"smooth"}),
     libraryButton:()=>window.openLibrary?.(),
     favoritesButton:()=>window.openSaved?.("favorites"),
@@ -1559,7 +1559,7 @@ $("favoritesButton").addEventListener("click",()=>openSaved("favorites"));$("boo
     deleteBookButton:()=>window.deleteCurrentBook?.(),
     coverButton:()=>document.getElementById("coverInput")?.click(),
     visibilityButton:()=>window.updateBookVisibility?.(),
-    headerUpload:()=>window.state?.user ? document.getElementById("fileInput")?.click() : window.openAuth?.("login"),
+    headerUpload:()=>(typeof state!=="undefined" && state.user) ? document.getElementById("fileInput")?.click() : window.openAuth?.("login"),
     chooseButton:()=>window.state?.user ? document.getElementById("fileInput")?.click() : window.openAuth?.("login"),
     savedFavoritesTab:()=>window.openSaved?.("favorites"),
     savedBookmarksTab:()=>window.openSaved?.("bookmarks"),
@@ -1581,7 +1581,7 @@ $("favoritesButton").addEventListener("click",()=>openSaved("favorites"));$("boo
     if(!el) return;
     const fn=actions[el.id];
     if(typeof fn!=="function") return;
-    if(el.id==="authButton" && !window.state) return;
+    if(el.id==="authButton" && typeof state==="undefined") return;
     e.preventDefault();
     e.stopImmediatePropagation();
     try{fn()}catch(error){console.error("Digital Book button error:",error);window.toast?.(error.message||"That button could not be opened.");}
