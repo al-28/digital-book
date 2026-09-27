@@ -455,6 +455,7 @@
       renderPublicLibrary();
     }catch(error){
       console.error("Public Library load failed:",error);
+      if(requestId!==state.publicLibraryRequestId)return;
       state.publicBooks=[];
       panel.innerHTML='<div class="discover-empty" style="grid-column:1/-1"><strong>Public Library could not load.</strong><div style="margin-top:7px">Please refresh the page. Your private books are not affected.</div></div>';
     }
@@ -1443,7 +1444,12 @@
       updateHeader();
       setTimeout(async()=>{
         try{
-          await loadPublicBooks($("publicSearch").value);
+          // The initial public catalog is loaded once below, after getSession().
+          // Only real auth transitions refresh it here; INITIAL_SESSION and token
+          // refresh events must not compete with the startup catalog request.
+          if(event==="SIGNED_IN" || event==="SIGNED_OUT"){
+            await loadPublicBooks($("publicSearch").value);
+          }
           if(state.user){
             await loadBooks(); await loadFavorites(); await loadPhotos(); renderBookLibrary(); renderFavoritesLibrary();
           }else{
