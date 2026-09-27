@@ -275,7 +275,7 @@
     readerIndex: 0,
     readerPages: [],
     draggingId: null,
-    publicBooks: [],
+    publicBooks: [], publicLibraryRequestId: 0,
     publicBook: null,
     publicSections: [],
     publicPhotos: [],
@@ -415,7 +415,7 @@
     if(!supabaseClient || !panel)return;
 
     const q=query.trim();
-    const cacheKey="digital-book:public-library:"+q.toLowerCase();
+    const requestId=++state.publicLibraryRequestId;
     let hasCache=false;
     if(!q){
       try{
@@ -446,6 +446,7 @@
         new Promise((_,reject)=>setTimeout(()=>reject(new Error("Public Library request timed out.")),12000))
       ]);
       if(result.error)throw result.error;
+      if(requestId!==state.publicLibraryRequestId)return;
       state.publicBooks=result.data||[];
       if(!q){
         try{localStorage.setItem("digital-book:public-books",JSON.stringify(state.publicBooks));}
@@ -1460,12 +1461,15 @@
         }catch(error){console.error(error);toast(error.message||"Could not refresh your account.")}
       },0);
     });
-    await loadPublicBooks();
+    // Restore the session first, then fetch the public catalog so the first visible request
+    // cannot be replaced by an older auth-state refresh.
     const {data,error}=await supabaseClient.auth.getSession();
     if(error)console.warn("Could not restore session:",error);
     state.user=data.session?.user||null;
     state.profileName=state.user?.user_metadata?.display_name||"";
     updateHeader(); render();
+    // Always perform the first public-library fetch after the page/session state is ready.
+    await loadPublicBooks($("publicSearch").value);
     if(state.user){
       try{await loadBooks();await loadFavorites();await loadPhotos();await loadAllBookmarks();renderFavoritesLibrary()}
       catch(error){console.error("Private book initialization failed:",error);toast(error.message||"Could not load your account books.")}
