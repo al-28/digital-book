@@ -414,7 +414,22 @@
     const panel=$("publicLibrary");
     if(!supabaseClient || !panel)return;
 
-    panel.innerHTML='<div class="discover-empty" style="grid-column:1/-1"><div class="spinner" style="margin-bottom:12px"></div>Loading public books…</div>';
+    const q=query.trim();
+    const cacheKey="digital-book:public-library:"+q.toLowerCase();
+    let hasCache=false;
+    if(!q){
+      try{
+        const cached=JSON.parse(localStorage.getItem("digital-book:public-books")||"null");
+        if(Array.isArray(cached) && cached.length){
+          state.publicBooks=cached;
+          renderPublicLibrary();
+          hasCache=true;
+        }
+      }catch(error){console.warn("Public Library cache read failed:",error);}
+    }
+    if(!hasCache){
+      panel.innerHTML='<div class="discover-empty" style="grid-column:1/-1"><div class="spinner" style="margin-bottom:12px"></div>Loading public books…</div>';
+    }
 
     try{
       let request=supabaseClient.from("books")
@@ -422,7 +437,6 @@
         .eq("is_public",true)
         .order("created_at",{ascending:false})
         .limit(100);
-      const q=query.trim();
       if(q){
         const safe=q.replace(/[%_,]/g," ").trim();
         if(safe) request=request.or("title.ilike.%"+safe+"%,author.ilike.%"+safe+"%,description.ilike.%"+safe+"%");
@@ -433,6 +447,10 @@
       ]);
       if(result.error)throw result.error;
       state.publicBooks=result.data||[];
+      if(!q){
+        try{localStorage.setItem("digital-book:public-books",JSON.stringify(state.publicBooks));}
+        catch(error){console.warn("Public Library cache write failed:",error);}
+      }
       renderPublicLibrary();
     }catch(error){
       console.error("Public Library load failed:",error);
@@ -1668,6 +1686,14 @@ $("favoritesButton").addEventListener("click",()=>openSaved("favorites"));$("boo
     console.error("Digital Book unhandled promise rejection:", event.reason);
   });
 
+  // Render the last known public catalog immediately, then refresh it from Supabase in the background.
+  try{
+    const cached=JSON.parse(localStorage.getItem("digital-book:public-books")||"null");
+    if(Array.isArray(cached) && cached.length){
+      state.publicBooks=cached;
+      renderPublicLibrary();
+    }
+  }catch(error){console.warn("Public Library startup cache failed:",error);}
   init();
 </script>
 
@@ -1696,6 +1722,18 @@ $("favoritesButton").addEventListener("click",()=>openSaved("favorites"));$("boo
   document.addEventListener("click",function(e){
     const b=e.target.closest?.("button[id]");
     if(!b) return;
+    if(b.id==="passwordToggle"){
+      e.preventDefault();
+      const input=q("passwordInput");
+      if(input){
+        const visible=input.type==="text";
+        input.type=visible?"password":"text";
+        b.textContent=visible?"Show":"Hide";
+        b.setAttribute("aria-label",visible?"Show password":"Hide password");
+        input.focus();
+      }
+      return;
+    }
     if(b.id==="profileCancel"){ e.preventDefault(); q("profileModal")?.classList.add("hidden"); }
     if(b.id==="profileSave" && typeof window.saveProfile==="function"){ e.preventDefault(); window.saveProfile(); }
     if(b.id==="profileLogout" && typeof window.logout==="function"){ e.preventDefault(); Promise.resolve(window.logout()).finally(()=>q("profileModal")?.classList.add("hidden")); }
@@ -1749,7 +1787,16 @@ $("favoritesButton").addEventListener("click",()=>openSaved("favorites"));$("boo
     viewerClose:()=>window.closeViewer?.(),
     viewerPrev:()=>window.moveViewer?.(-1),
     viewerNext:()=>window.moveViewer?.(1),
-    passwordToggle:()=>document.getElementById("passwordToggle")?.click(),
+    passwordToggle:()=>{
+      const input=document.getElementById("passwordInput");
+      const button=document.getElementById("passwordToggle");
+      if(!input||!button)return;
+      const visible=input.type==="text";
+      input.type=visible?"password":"text";
+      button.textContent=visible?"Show":"Hide";
+      button.setAttribute("aria-label",visible?"Show password":"Hide password");
+      input.focus();
+    },
     profileCancel:()=>document.getElementById("profileModal")?.classList.add("hidden"),
     profileSave:()=>window.saveProfile?.(),
     profileLogout:()=>window.logout?.()
@@ -1765,6 +1812,17 @@ $("favoritesButton").addEventListener("click",()=>openSaved("favorites"));$("boo
     try{fn()}catch(error){console.error("Digital Book button error:",error);window.toast?.(error.message||"That button could not be opened.");}
   },true);
   document.addEventListener("keydown",function(e){
+    if(e.key==="Enter"){
+      const target=e.target;
+      const authModal=document.getElementById("authModal");
+      if(authModal && !authModal.classList.contains("hidden") &&
+         (target?.id==="emailInput" || target?.id==="passwordInput")){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if(typeof window.authenticate==="function") window.authenticate();
+        return;
+      }
+    }
     if(e.key!=="Enter"&&e.key!==" ") return;
     const el=e.target.closest?.("button[id]");
     if(!el||el.disabled||!actions[el.id]) return;
