@@ -1540,5 +1540,60 @@ $("favoritesButton").addEventListener("click",()=>openSaved("favorites"));$("boo
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",wireAuthFallback,{once:true}); else wireAuthFallback();
 })();
 </script>
+<script>
+(function(){
+  if(window.__digitalBookReliableClickLayer) return;
+  window.__digitalBookReliableClickLayer=true;
+  const actions={
+    profileButton:()=>window.openProfile?.(),
+    authButton:()=>window.state?.user ? window.logout?.() : window.openAuth?.("login"),
+    discoverButton:()=>document.getElementById("discoverSection")?.scrollIntoView({behavior:"smooth"}),
+    libraryButton:()=>window.openLibrary?.(),
+    favoritesButton:()=>window.openSaved?.("favorites"),
+    bookmarksButton:()=>window.openSaved?.("bookmarks"),
+    readButton:()=>window.openReader?.(),
+    newBookButton:()=>window.createBook?.(),
+    bookMenuButton:()=>document.getElementById("bookMenuPanel")?.classList.toggle("hidden"),
+    themeButton:()=>window.toggleTheme?.(),
+    editBookButton:()=>window.editBookDetails?.(),
+    deleteBookButton:()=>window.deleteCurrentBook?.(),
+    coverButton:()=>document.getElementById("coverInput")?.click(),
+    visibilityButton:()=>window.updateBookVisibility?.(),
+    headerUpload:()=>window.state?.user ? document.getElementById("fileInput")?.click() : window.openAuth?.("login"),
+    chooseButton:()=>window.state?.user ? document.getElementById("fileInput")?.click() : window.openAuth?.("login"),
+    savedFavoritesTab:()=>window.openSaved?.("favorites"),
+    savedBookmarksTab:()=>window.openSaved?.("bookmarks"),
+    favoritesClose:()=>window.closeFavorites?.(),
+    libraryClose:()=>window.closeLibrary?.(),
+    readerClose:()=>window.closeReader?.(),
+    readerPrev:()=>window.moveReader?.(-1),
+    readerNext:()=>window.moveReader?.(1),
+    readerToc:()=>document.getElementById("readerTocPanel")?.classList.toggle("hidden"),
+    readerTocClose:()=>document.getElementById("readerTocPanel")?.classList.add("hidden"),
+    readerBookmark:()=>window.toggleReaderBookmark?.(),
+    viewerClose:()=>window.closeViewer?.(),
+    viewerPrev:()=>window.moveViewer?.(-1),
+    viewerNext:()=>window.moveViewer?.(1),
+    passwordToggle:()=>document.getElementById("passwordToggle")?.click()
+  };
+  document.addEventListener("click",function(e){
+    const el=e.target.closest?.("button[id]");
+    if(!el) return;
+    const fn=actions[el.id];
+    if(typeof fn!=="function") return;
+    if(el.id==="authButton" && !window.state) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    try{fn()}catch(error){console.error("Digital Book button error:",error);window.toast?.(error.message||"That button could not be opened.");}
+  },true);
+  document.addEventListener("keydown",function(e){
+    if(e.key!=="Enter"&&e.key!==" ") return;
+    const el=e.target.closest?.("button[id]");
+    if(!el||el.disabled||!actions[el.id]) return;
+    e.preventDefault();
+    el.click();
+  },true);
+})();
+</script>
 </body>
 </html>
