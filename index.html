@@ -67,9 +67,9 @@
     .reader{position:fixed;inset:0;z-index:90;background:#080809;display:flex;flex-direction:column}
     .reader-top{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid #242428;background:rgba(10,10,11,.9);backdrop-filter:blur(20px)}
     .reader-title{font-weight:650;max-width:50%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .reader-page{flex:1;display:flex;align-items:center;justify-content:center;padding:18px 70px;overflow:hidden;touch-action:pan-y}
+    .reader-page{flex:1;display:flex;align-items:center;justify-content:center;padding:18px 70px;overflow:hidden;touch-action:none;overscroll-behavior:none}
     .reader-sheet{width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;background:transparent;color:inherit;box-shadow:none;border-radius:0}
-    .reader-sheet img{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;margin:auto;user-select:none;-webkit-user-drag:none;transform-origin:center center;will-change:transform}
+    .reader-sheet img{display:block;max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;margin:auto;user-select:none;-webkit-user-drag:none;transform-origin:center center;will-change:transform;touch-action:none}
     .reader-sheet.cover-sheet{background:transparent;color:inherit}
     .reader-cover-image{max-width:100%!important;max-height:100%!important;width:auto!important;height:auto!important;object-fit:contain!important}
     .reader-cover-title{font-size:clamp(32px,6vw,72px);font-weight:800;letter-spacing:-3px;margin:0 0 14px}
@@ -279,7 +279,7 @@
     publicBook: null,
     publicSections: [],
     publicPhotos: [],
-    profileName: "", detailPhotoId: null, readerMode: "private", favorites: new Set(), bookmarks: [], savedBookmarks: [], savedTab: "favorites", theme: localStorage.getItem("digital-book:theme") || "dark", readerDirection: 0, readerZoom: 1, readerPinchDistance: 0
+    profileName: "", detailPhotoId: null, readerMode: "private", favorites: new Set(), bookmarks: [], savedBookmarks: [], savedTab: "favorites", theme: localStorage.getItem("digital-book:theme") || "dark", readerDirection: 0, readerZoom: 1, readerPanX: 0, readerPanY: 0, readerPointers: new Map(), readerDrag: null, readerPinchDistance: 0
   };
 
   const $ = (id) => document.getElementById(id);
@@ -501,6 +501,7 @@
     state.readerMode="public";
     state.readerIndex=0;
     state.readerZoom=1;
+    resetReaderPan();
     buildReaderPages();
     if(!state.readerPages.length){toast("This book has no pages yet.");return}
     $("reader").classList.remove("hidden");
@@ -656,6 +657,7 @@
     if (!state.readerPages.length) { toast("Add some photos before opening Reading Mode."); return; }
     state.readerIndex = 0;
     state.readerZoom = 1;
+    resetReaderPan();
     await loadBookmarks();
     $("reader").classList.remove("hidden");
     await renderReaderPage();
@@ -711,11 +713,16 @@
     return Math.min(4, Math.max(1, Number(value) || 1));
   }
 
+  function resetReaderPan() {
+    state.readerPanX = 0;
+    state.readerPanY = 0;
+  }
+
   function applyReaderZoom() {
     const img = $("readerPage").querySelector("img");
     if (!img) return;
-    img.style.transform = "scale(" + state.readerZoom + ")";
-    img.style.cursor = state.readerZoom > 1 ? "grab" : "zoom-in";
+    img.style.transform = "translate3d(" + state.readerPanX + "px," + state.readerPanY + "px,0) scale(" + state.readerZoom + ")";
+    img.style.cursor = state.readerZoom > 1 ? (state.readerDrag ? "grabbing" : "grab") : "zoom-in";
   }
 
   function updateReaderZoomLabel() {
@@ -725,6 +732,7 @@
 
   function setReaderZoom(value) {
     state.readerZoom = clampReaderZoom(value);
+    if (state.readerZoom === 1) resetReaderPan();
     applyReaderZoom();
     updateReaderZoomLabel();
   }
@@ -732,14 +740,49 @@
   function zoomReader(delta) {
     setReaderZoom(state.readerZoom + delta);
   }
+
   window.zoomReader = zoomReader;
   window.setReaderZoom = setReaderZoom;
 
+  function panReaderBy(dx, dy) {
+    if (state.readerZoom <= 1) return;
+    state.readerPanX += dx;
+    state.readerPanY += dy;
+    applyReaderZoom();
+  }
+
+  function beginReaderPointer(e) {
+    if (state.readerZoom <= 1 || e.pointerType === "mouse" && e.button !== 0) return;
+    const area = $("readerPage");
+    state.readerDrag = { pointerId: e.pointerId, x: e.clientX, y: e.clientY };
+    try { area.setPointerCapture(e.pointerId); } catch {}
+    e.preventDefault();
+    applyReaderZoom();
+  }
+
+  function moveReaderPointer(e) {
+    const drag = state.readerDrag;
+    if (!drag || drag.pointerId !== e.pointerId) return;
+    const dx = e.clientX - drag.x;
+    const dy = e.clientY - drag.y;
+    drag.x = e.clientX;
+    drag.y = e.clientY;
+    panReaderBy(dx, dy);
+    e.preventDefault();
+  }
+
+  function endReaderPointer(e) {
+    if (state.readerDrag?.pointerId !== e.pointerId) return;
+    try { $("readerPage").releasePointerCapture(e.pointerId); } catch {}
+    state.readerDrag = null;
+    applyReaderZoom();
+  }
 
   function moveReader(delta) {state.readerDirection=delta;
     if (!state.readerPages.length) return;
     state.readerIndex = (state.readerIndex + delta + state.readerPages.length) % state.readerPages.length;
     state.readerZoom = 1;
+    resetReaderPan();
     renderReaderPage();
   }
 
@@ -1040,6 +1083,8 @@
 
   function openProfile(){if(!state.user){openAuth("login");return}const u=state.user;$("profileEmail").value=u.email||"";$("profileName").value=u.user_metadata?.display_name||u.user_metadata?.full_name||"";$("profileStatus").textContent="Signed in";$("profileModal").classList.remove("hidden")}
   async function saveProfile(){if(!state.user)return;const name=$("profileName").value.trim().slice(0,80);try{const {data,error}=await supabaseClient.auth.updateUser({data:{display_name:name}});if(error)throw error;state.user=data.user||state.user;state.profileName=name;$("profileStatus").textContent="Profile saved.";updateHeader();toast("Profile saved.")}catch(error){console.error(error);$("profileStatus").textContent=error.message||"Could not save profile.";toast(error.message||"Could not save profile.")}}
+  window.openProfile = openProfile;
+  window.saveProfile = saveProfile;
   function openPhotoDetails(id){const photo=state.photos.find(p=>p.id===id);if(!photo)return;state.detailPhotoId=id;const book=state.books.find(b=>b.id===state.currentBookId);const section=state.sections.find(s=>s.id===photo.section_id);$("photoDetailsFilename").value=photo.filename||"";$("photoDetailsBook").value=book?.title||"Current book";$("photoDetailsSection").value=section?.name||"All sections";$("photoDetailsCaption").value=photo.caption||"";$("photoDetailsMeta").textContent="Added "+new Date(photo.created_at).toLocaleString()+" · position "+(photo.position+1);$("photoDetailsModal").classList.remove("hidden")}
   function closePhotoDetails(){$("photoDetailsModal").classList.add("hidden");state.detailPhotoId=null}
   async function savePhotoDetails(){const photo=state.photos.find(p=>p.id===state.detailPhotoId);if(!photo||!state.user)return;const saved=await saveCaption(photo,$("photoDetailsCaption").value);if(!saved)return;closePhotoDetails();render();toast("Caption saved.")}
@@ -1049,6 +1094,7 @@
     const {error}=await supabaseClient.auth.signOut();
     if(error)toast(error.message);
   }
+  window.logout = logout;
 
   function extensionFor(file) {
     const ext = file.name.includes(".") ? file.name.split(".").pop().toLowerCase() : "jpg";
@@ -1478,28 +1524,59 @@
     const dy = touches[0].clientY - touches[1].clientY;
     return Math.hypot(dx, dy);
   };
-  $("readerPage").addEventListener("touchstart", e => {
-    readerTouchX = e.changedTouches[0]?.clientX || 0;
-    readerPinchDistance = touchDistance(e.touches);
-  }, {passive:true});
-  $("readerPage").addEventListener("touchmove", e => {
-    if (e.touches.length < 2) return;
-    const distance = touchDistance(e.touches);
+
+  $("readerPage").addEventListener("pointerdown", e => {
+    if (state.readerZoom > 1) {
+      beginReaderPointer(e);
+      return;
+    }
+    readerTouchX = e.clientX;
+  });
+  $("readerPage").addEventListener("pointermove", moveReaderPointer);
+  $("readerPage").addEventListener("pointerup", e => {
+    if (state.readerDrag) {
+      endReaderPointer(e);
+      return;
+    }
+    if (state.readerZoom === 1 && e.pointerType !== "mouse") {
+      const dx = e.clientX - readerTouchX;
+      if (Math.abs(dx) > 50) moveReader(dx < 0 ? 1 : -1);
+    }
+  });
+  $("readerPage").addEventListener("pointercancel", endReaderPointer);
+  $("readerPage").addEventListener("pointerleave", e => {
+    if (state.readerDrag) moveReaderPointer(e);
+  });
+
+  // Two-finger pinch zoom. Pointer events let touch, pen, and mouse share one interaction model.
+  const pinchPointers = new Map();
+  $("readerPage").addEventListener("pointerdown", e => {
+    pinchPointers.set(e.pointerId, {x:e.clientX,y:e.clientY});
+    if (pinchPointers.size === 2) {
+      const pts=[...pinchPointers.values()];
+      readerPinchDistance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);
+    }
+  });
+  $("readerPage").addEventListener("pointermove", e => {
+    if (!pinchPointers.has(e.pointerId)) return;
+    pinchPointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if (pinchPointers.size !== 2) return;
+    const pts=[...pinchPointers.values()];
+    const distance=Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y);
     if (!readerPinchDistance || !distance) return;
-    const ratio = distance / readerPinchDistance;
-    if (Math.abs(ratio - 1) > 0.025) {
+    const ratio=distance/readerPinchDistance;
+    if(Math.abs(ratio-1)>0.01){
       e.preventDefault();
-      setReaderZoom(state.readerZoom * ratio);
-      readerPinchDistance = distance;
+      setReaderZoom(state.readerZoom*ratio);
+      readerPinchDistance=distance;
     }
   }, {passive:false});
-  $("readerPage").addEventListener("touchend", e => {
-    if (e.touches.length === 0) {
-      readerPinchDistance = 0;
-      const dx = (e.changedTouches[0]?.clientX || 0) - readerTouchX;
-      if (state.readerZoom === 1 && Math.abs(dx) > 50) moveReader(dx < 0 ? 1 : -1);
-    }
-  }, {passive:true});
+  const clearPinch=e => {
+    pinchPointers.delete(e.pointerId);
+    if(pinchPointers.size<2) readerPinchDistance=0;
+  };
+  $("readerPage").addEventListener("pointerup",clearPinch);
+  $("readerPage").addEventListener("pointercancel",clearPinch);
 
   $("viewerClose").addEventListener("click", closeViewer);
   $("viewerPrev").addEventListener("click", () => moveViewer(-1));
@@ -1613,10 +1690,34 @@ $("favoritesButton").addEventListener("click",()=>openSaved("favorites"));$("boo
 </script>
 <script>
 (function(){
+  if(window.__digitalBookProfileFallback) return;
+  window.__digitalBookProfileFallback=true;
+  const q=id=>document.getElementById(id);
+  document.addEventListener("click",function(e){
+    const b=e.target.closest?.("button[id]");
+    if(!b) return;
+    if(b.id==="profileCancel"){ e.preventDefault(); q("profileModal")?.classList.add("hidden"); }
+    if(b.id==="profileSave" && typeof window.saveProfile==="function"){ e.preventDefault(); window.saveProfile(); }
+    if(b.id==="profileLogout" && typeof window.logout==="function"){ e.preventDefault(); Promise.resolve(window.logout()).finally(()=>q("profileModal")?.classList.add("hidden")); }
+  },true);
+})();
+</script>
+<script>
+(function(){
   if(window.__digitalBookReliableClickLayer) return;
   window.__digitalBookReliableClickLayer=true;
   const actions={
-    profileButton:()=>window.openProfile?.(),
+    profileButton:()=>{
+      if(typeof window.openProfile==="function"){ window.openProfile(); return; }
+      const modal=document.getElementById("profileModal");
+      const user=(typeof state!=="undefined" && state.user)||null;
+      if(!user){ window.openAuth?.("login"); return; }
+      const email=document.getElementById("profileEmail"), name=document.getElementById("profileName"), status=document.getElementById("profileStatus");
+      if(email) email.value=user.email||"";
+      if(name) name.value=user.user_metadata?.display_name||user.user_metadata?.full_name||"";
+      if(status) status.textContent="Signed in";
+      modal?.classList.remove("hidden");
+    },
     authButton:()=>(typeof state!=="undefined" && state.user) ? window.logout?.() : window.openAuth?.("login"),
     discoverButton:()=>document.getElementById("discoverSection")?.scrollIntoView({behavior:"smooth"}),
     libraryButton:()=>window.openLibrary?.(),
@@ -1648,7 +1749,10 @@ $("favoritesButton").addEventListener("click",()=>openSaved("favorites"));$("boo
     viewerClose:()=>window.closeViewer?.(),
     viewerPrev:()=>window.moveViewer?.(-1),
     viewerNext:()=>window.moveViewer?.(1),
-    passwordToggle:()=>document.getElementById("passwordToggle")?.click()
+    passwordToggle:()=>document.getElementById("passwordToggle")?.click(),
+    profileCancel:()=>document.getElementById("profileModal")?.classList.add("hidden"),
+    profileSave:()=>window.saveProfile?.(),
+    profileLogout:()=>window.logout?.()
   };
   document.addEventListener("click",function(e){
     const el=e.target.closest?.("button[id]");
