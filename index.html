@@ -637,6 +637,9 @@ main{
       q("authorStudioStatus").textContent="Profile saved.";q("authorStudioTitle").textContent=name;q("authorStudioSlug").textContent="@"+slug;toast("Author profile saved.");renderBookLibrary();await loadPublicBooks(q("publicSearch").value);await renderStudioBooks()
     }catch(e){console.error(e);q("authorStudioStatus").textContent=e.message||"Could not save profile.";toast(e.message||"Could not save profile.")}
   }
+  window.openProfile=openStudio;
+  window.saveProfile=saveStudio;
+
   async function openPublicAuthor(userId){
     try{
       const p=await supabaseClient.from("author_profiles").select("user_id,display_name,slug,bio,website,avatar_path,is_public").eq("user_id",userId).eq("is_public",true).single();if(p.error)throw p.error;
