@@ -32,6 +32,7 @@ for select to anon, authenticated
 using (is_public = true);
 
 alter table public.books add column if not exists author_id uuid references public.author_profiles(user_id) on delete set null;
+alter table public.books alter column author_id set default auth.uid();
 create index if not exists books_author_id_idx on public.books(author_id);
 
 insert into public.author_profiles(user_id, display_name, slug)
