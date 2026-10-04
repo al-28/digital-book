@@ -2155,7 +2155,7 @@ $("favoritesButton").addEventListener("click",()=>openSaved("favorites"));$("boo
   $("photoDetailsDownload").addEventListener("click",()=>{const p=state.photos.find(x=>x.id===state.detailPhotoId);if(p)downloadPhoto(p)});
   $("photoDetailsDelete").addEventListener("click",deletePhotoFromDetails);
   $("photoDetailsModal").addEventListener("click",e=>{if(e.target===$("photoDetailsModal"))closePhotoDetails()});
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("chapterManagerModal").classList.contains("hidden"))closeChapterManager()});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape" && $("chapterNameInput")===document.activeElement){$("chapterNameInput").blur()}});
 
   window.addEventListener("error", event => {
     console.error("Digital Book runtime error:", event.error || event.message);
