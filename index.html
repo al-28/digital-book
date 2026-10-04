@@ -194,7 +194,7 @@
   <div class="chapter-add"><input id="chapterNameInput" maxlength="120" placeholder="New chapter name…"><button class="btn primary" id="chapterAddButton" type="button">Add chapter</button></div>
   <div class="modal-actions"><button class="btn" id="chapterManagerDone" type="button">Done</button></div>
 </div></div>
-<div id="photoDetailsModal" class="modal-backdrop hidden"><div class="modal"><h2>Photo details</h2><div class="field"><label>File</label><input id="photoDetailsFilename" readonly></div><div class="field"><label>Book</label><input id="photoDetailsBook" readonly></div><div class="field"><label for="photoDetailsChapter">Chapter</label><select id="photoDetailsChapter" class="photo-details-chapter"></select></div><div class="field"><label>Caption</label><input id="photoDetailsCaption" maxlength="500"></div><div id="photoDetailsMeta" class="auth-message"></div><div class="modal-actions"><button class="btn" id="photoDetailsClose">Close</button><button class="btn" id="photoDetailsDownload">Download</button><button class="btn danger" id="photoDetailsDelete">Delete photo</button><button class="btn primary" id="photoDetailsSave">Save caption</button></div></div></div>
+<div id="photoDetailsModal" class="modal-backdrop hidden"><div class="modal"><h2>Photo details</h2><div class="field"><label>File</label><input id="photoDetailsFilename" readonly></div><div class="field"><label>Book</label><input id="photoDetailsBook" readonly></div><div class="field"><label for="photoDetailsChapter">Chapter</label><select id="photoDetailsChapter" class="photo-details-chapter"></select></div><div class="field"><label>Caption</label><input id="photoDetailsCaption" maxlength="500"></div><div id="photoDetailsMeta" class="auth-message"></div><div class="modal-actions"><button class="btn" id="photoDetailsClose">Close</button><button class="btn" id="photoDetailsDownload">Download</button><button class="btn danger" id="photoDetailsDelete">Delete photo</button><button class="btn primary" id="photoDetailsSave">Save changes</button></div></div></div>
 <div id="authModal" class="modal-backdrop hidden">
   <div class="modal">
     <h2 id="authTitle">Log in</h2>
@@ -1091,10 +1091,17 @@
   }
 
   function updateCount() {
-    const n = state.photos.length;
-    $("countText").textContent = n
-      ? `${n} ${n === 1 ? "photo" : "photos"} · drag to reorder`
-      : "Your photos, in the order you added them.";
+    const n=state.photos.length;
+    const chapter=state.sections.find(s=>s.id===state.currentSectionId);
+    if(chapter){
+      $("countText").textContent=n
+        ? chapter.name+" · "+n+" "+(n===1?"page":"pages")+" · drag to reorder"
+        : chapter.name+" · no pages yet";
+      return;
+    }
+    $("countText").textContent=n
+      ? n+" "+(n===1?"page":"pages")+" · drag to reorder"
+      : "Your book is empty. Add pages or create a chapter to organize them.";
   }
 
   function setAuthMessage(message = "", type = "") {
@@ -1394,7 +1401,11 @@
     setLoading(true);
 
     try {
-      let nextPosition = state.photos.length;
+      // Positions are global to the whole book, not the currently filtered chapter.
+      // Never use state.photos.length here because a chapter filter may hide other pages.
+      const latest=await supabaseClient.from("photos").select("position").eq("book_id",state.currentBookId).order("position",{ascending:false}).limit(1).maybeSingle();
+      if(latest.error)throw latest.error;
+      let nextPosition=(latest.data?.position ?? -1)+1;
 
       for (const file of imageFiles) {
         const id = crypto.randomUUID();
