@@ -267,6 +267,11 @@ grant select, insert, update, delete on public.photos to authenticated;
 grant select on public.photos to anon;
 
 
+
+-- Chapter ordering and page-assignment indexes.
+create index if not exists sections_book_position_idx on public.sections(book_id,position);
+create index if not exists photos_section_idx on public.photos(section_id);
+
 -- V2.0: favorites and bookmarks
 create table if not exists public.book_favorites (
   user_id uuid not null references auth.users(id) on delete cascade,

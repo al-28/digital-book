@@ -102,6 +102,24 @@
     .public-card-description{font-size:12px;color:#777;line-height:1.45;margin:8px 3px 2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
     .discover-empty{padding:45px 20px;text-align:center;color:#777;border:1px dashed #303034;border-radius:18px}
     .visibility-public{color:#69d58b}.visibility-private{color:#ffb340}
+.chapter-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
+.chapter-select-wrap{display:flex;align-items:center;gap:8px}
+.chapter-select-label{font-size:12px;color:var(--muted);font-weight:650;text-transform:uppercase;letter-spacing:.05em}
+.chapter-manager-list{display:grid;gap:8px;margin-top:14px;max-height:52vh;overflow:auto}
+.chapter-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:10px}
+.chapter-number{width:30px;height:30px;border-radius:9px;background:var(--surface2);display:grid;place-items:center;font-size:12px;font-weight:750;color:var(--muted)}
+.chapter-row-main{min-width:0}
+.chapter-name-input{width:100%;border:1px solid transparent;background:transparent;color:var(--text);border-radius:9px;padding:8px 9px;outline:none;font-weight:650}
+.chapter-name-input:hover,.chapter-name-input:focus{border-color:var(--line);background:var(--surface2)}
+.chapter-meta{font-size:11px;color:var(--muted);margin:3px 9px 0}
+.chapter-row-actions{display:flex;gap:5px}
+.chapter-row-actions .btn{padding:8px 10px;font-size:12px}
+.chapter-add{display:flex;gap:8px;margin-top:14px}
+.chapter-add input{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:12px;padding:11px 12px;outline:none}
+.chapter-add input:focus{border-color:#666}
+.photo-details-chapter{width:100%;border:1px solid #343438;background:#0e0e10;color:#fff;border-radius:12px;padding:12px 13px;outline:none}
+.light .photo-details-chapter{background:#fff;color:#151517;border-color:#d8d8de}
+@media(max-width:650px){.chapter-row{grid-template-columns:auto minmax(0,1fr)}.chapter-row-actions{grid-column:2;justify-content:flex-end}.chapter-select-wrap{width:100%}.chapter-select-wrap select{flex:1}}
     @media(max-width:650px){.discover{margin-bottom:36px}.discover-head{align-items:stretch;flex-direction:column}.public-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.public-card{padding:8px}.public-card-title{font-size:15px}}
     @media(max-width:650px){
       .topbar{height:64px;padding:0 14px}.brand-mark{width:32px;height:32px}.brand-meta{display:none}.brand-title{font-size:14px}
@@ -135,7 +153,15 @@
       <div>
         <h1 id="bookTitle" contenteditable="true" spellcheck="false">My Book</h1>
         <p id="countText">Your photos, in the order you added them.</p>
-        <div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select id="sectionSelect" style="background:#141416;color:#fff;border:1px solid #2a2a2e;border-radius:10px;padding:9px 12px"></select><button class="btn" id="newSectionButton">＋ Section</button><button class="btn" id="bookDetailsButton">Details</button></div>
+        <div class="chapter-controls">
+  <div class="chapter-select-wrap">
+    <span class="chapter-select-label">Chapter</span>
+    <select id="sectionSelect" style="background:#141416;color:#fff;border:1px solid #2a2a2e;border-radius:10px;padding:9px 12px;min-width:190px"></select>
+  </div>
+  <button class="btn" id="newSectionButton">＋ Chapter</button>
+  <button class="btn" id="manageSectionsButton">Manage chapters</button>
+  <button class="btn" id="bookDetailsButton">Details</button>
+</div>
       </div>
     </section>
 
@@ -159,7 +185,16 @@
 </div>
 
 <div id="bookEditModal" class="modal-backdrop hidden"><div class="modal"><h2>Edit book</h2><p>Change the title, author, and description in one place.</p><div class="field"><label for="editBookTitle">Book name</label><input id="editBookTitle" maxlength="120"></div><div class="field"><label for="editBookAuthor">Author / creator</label><input id="editBookAuthor" maxlength="160"></div><div class="field"><label for="editBookDescription">Description</label><input id="editBookDescription" maxlength="1000"></div><div class="modal-actions"><button class="btn" id="bookEditCancel">Cancel</button><button class="btn primary" id="bookEditSave">Save</button></div></div></div><div id="profileModal" class="modal-backdrop hidden"><div class="modal"><h2>Profile</h2><p>Your account information and session controls.</p><div class="field"><label for="profileEmail">Email</label><input id="profileEmail" type="email" readonly></div><div class="field"><label for="profileName">Display name</label><input id="profileName" maxlength="80" placeholder="Your name"></div><div id="profileStatus" class="auth-message" role="status"></div><div class="modal-actions"><button class="btn" id="profileCancel">Close</button><button class="btn" id="profileLogout">Log out</button><button class="btn primary" id="profileSave">Save</button></div></div></div>
-<div id="photoDetailsModal" class="modal-backdrop hidden"><div class="modal"><h2>Photo details</h2><div class="field"><label>File</label><input id="photoDetailsFilename" readonly></div><div class="field"><label>Book</label><input id="photoDetailsBook" readonly></div><div class="field"><label>Section</label><input id="photoDetailsSection" readonly></div><div class="field"><label>Caption</label><input id="photoDetailsCaption" maxlength="500"></div><div id="photoDetailsMeta" class="auth-message"></div><div class="modal-actions"><button class="btn" id="photoDetailsClose">Close</button><button class="btn" id="photoDetailsDownload">Download</button><button class="btn danger" id="photoDetailsDelete">Delete photo</button><button class="btn primary" id="photoDetailsSave">Save caption</button></div></div></div>
+<div id="chapterManagerModal" class="modal-backdrop hidden"><div class="modal" style="width:min(720px,100%)">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <div><h2 style="margin:0">Manage chapters</h2><p style="margin:5px 0 0">Rename, reorder, or remove chapters. Removing a chapter keeps its pages and moves them to Unassigned.</p></div>
+    <button class="btn icon" id="chapterManagerClose" type="button" aria-label="Close">×</button>
+  </div>
+  <div id="chapterManagerList" class="chapter-manager-list"></div>
+  <div class="chapter-add"><input id="chapterNameInput" maxlength="120" placeholder="New chapter name…"><button class="btn primary" id="chapterAddButton" type="button">Add chapter</button></div>
+  <div class="modal-actions"><button class="btn" id="chapterManagerDone" type="button">Done</button></div>
+</div></div>
+<div id="photoDetailsModal" class="modal-backdrop hidden"><div class="modal"><h2>Photo details</h2><div class="field"><label>File</label><input id="photoDetailsFilename" readonly></div><div class="field"><label>Book</label><input id="photoDetailsBook" readonly></div><div class="field"><label for="photoDetailsChapter">Chapter</label><select id="photoDetailsChapter" class="photo-details-chapter"></select></div><div class="field"><label>Caption</label><input id="photoDetailsCaption" maxlength="500"></div><div id="photoDetailsMeta" class="auth-message"></div><div class="modal-actions"><button class="btn" id="photoDetailsClose">Close</button><button class="btn" id="photoDetailsDownload">Download</button><button class="btn danger" id="photoDetailsDelete">Delete photo</button><button class="btn primary" id="photoDetailsSave">Save changes</button></div></div></div>
 <div id="authModal" class="modal-backdrop hidden">
   <div class="modal">
     <h2 id="authTitle">Log in</h2>
@@ -268,6 +303,8 @@
     sections: [],
     currentBookId: null,
     currentSectionId: null,
+    chapterCounts: {},
+    chapterBusy: false,
     bookTitle: "My Book",
     authMode: "login",
     viewerIndex: -1,
@@ -601,9 +638,187 @@
       toast(error.message||"Could not create the book.");
     }
   }
-  async function loadSections(){const x=await supabaseClient.from("sections").select("id,name,position").eq("book_id",state.currentBookId).order("position");if(x.error)throw x.error;state.sections=x.data||[];renderSectionSelector()}
-  function renderSectionSelector(){const s=$("sectionSelect");s.innerHTML='<option value="">All sections</option>';state.sections.forEach(x=>{const o=document.createElement("option");o.value=x.id;o.textContent=x.name;s.appendChild(o)});s.value=state.currentSectionId||""}
-  async function createSection(){const name=prompt("Section name","Chapter 1");if(!name?.trim())return;const x=await supabaseClient.from("sections").insert({book_id:state.currentBookId,name:name.trim().slice(0,120),position:state.sections.length}).select().single();if(x.error){toast(x.error.message);return}state.currentSectionId=x.data.id;await loadSections();await loadPhotos()}
+  function sortChapters(list){return [...(list||[])].sort((a,b)=>(a.position-b.position)||(a.created_at||"").localeCompare(b.created_at||""))}
+  async function loadSections(){
+    if(!state.currentBookId){state.sections=[];state.chapterCounts={};renderSectionSelector();return}
+    const [sectionsResult,countsResult]=await Promise.all([
+      supabaseClient.from("sections").select("id,name,position,created_at").eq("book_id",state.currentBookId).order("position",{ascending:true}).order("created_at",{ascending:true}),
+      supabaseClient.from("photos").select("section_id").eq("book_id",state.currentBookId)
+    ]);
+    if(sectionsResult.error)throw sectionsResult.error;
+    if(countsResult.error)throw countsResult.error;
+    state.sections=sortChapters(sectionsResult.data||[]);
+    state.chapterCounts={};
+    (countsResult.data||[]).forEach(photo=>{
+      if(photo.section_id)state.chapterCounts[photo.section_id]=(state.chapterCounts[photo.section_id]||0)+1;
+    });
+    if(state.currentSectionId && !state.sections.some(s=>s.id===state.currentSectionId))state.currentSectionId=null;
+    renderSectionSelector();
+  }
+  function renderSectionSelector(){
+    const select=$("sectionSelect");
+    if(!select)return;
+    select.innerHTML="";
+    const all=document.createElement("option");
+    all.value="";
+    all.textContent="All chapters";
+    select.appendChild(all);
+    sortChapters(state.sections).forEach((chapter,index)=>{
+      const option=document.createElement("option");
+      option.value=chapter.id;
+      const count=state.chapterCounts[chapter.id]||0;
+      option.textContent=(index+1)+". "+chapter.name+(count?" · "+count+" "+(count===1?"page":"pages"):"");
+      select.appendChild(option);
+    });
+    select.value=state.currentSectionId||"";
+  }
+  function renderChapterManager(){
+    const list=$("chapterManagerList");
+    if(!list)return;
+    list.innerHTML="";
+    const chapters=sortChapters(state.sections);
+    if(!chapters.length){
+      list.innerHTML='<div class="empty" style="padding:35px 15px">No chapters yet. Add your first chapter below.</div>';
+      return;
+    }
+    chapters.forEach((chapter,index)=>{
+      const row=document.createElement("div");
+      row.className="chapter-row";
+      const number=document.createElement("div");
+      number.className="chapter-number";
+      number.textContent=index+1;
+      const main=document.createElement("div");
+      main.className="chapter-row-main";
+      const input=document.createElement("input");
+      input.className="chapter-name-input";
+      input.value=chapter.name;
+      input.maxLength=120;
+      input.setAttribute("aria-label","Chapter name");
+      const meta=document.createElement("div");
+      meta.className="chapter-meta";
+      const count=state.chapterCounts[chapter.id]||0;
+      meta.textContent=count+" "+(count===1?"page":"pages");
+      main.append(input,meta);
+      const actions=document.createElement("div");
+      actions.className="chapter-row-actions";
+      const save=document.createElement("button");
+      save.className="btn primary";save.type="button";save.textContent="Save";
+      save.onclick=()=>saveChapterName(chapter.id,input.value);
+      const up=document.createElement("button");
+      up.className="btn";up.type="button";up.textContent="↑";up.title="Move up";up.disabled=index===0;
+      up.onclick=()=>moveChapter(chapter.id,-1);
+      const down=document.createElement("button");
+      down.className="btn";down.type="button";down.textContent="↓";down.title="Move down";down.disabled=index===chapters.length-1;
+      down.onclick=()=>moveChapter(chapter.id,1);
+      const del=document.createElement("button");
+      del.className="btn danger";del.type="button";del.textContent="Delete";
+      del.onclick=()=>deleteChapter(chapter.id);
+      actions.append(save,up,down,del);
+      row.append(number,main,actions);
+      list.appendChild(row);
+    });
+  }
+  function openChapterManager(){
+    if(!state.user||!state.currentBookId){openAuth("login");return}
+    renderChapterManager();
+    $("chapterManagerModal").classList.remove("hidden");
+    setTimeout(()=>$("chapterNameInput").focus(),0);
+  }
+  function closeChapterManager(){$("chapterManagerModal").classList.add("hidden")}
+  async function createSection(name){
+    const clean=String(name||"").trim().slice(0,120);
+    if(!state.user||!state.currentBookId||!clean)return false;
+    const position=state.sections.length;
+    const result=await supabaseClient.from("sections").insert({book_id:state.currentBookId,name:clean,position}).select("id,name,position,created_at").single();
+    if(result.error)throw result.error;
+    state.sections=sortChapters([...state.sections,result.data]);
+    state.currentSectionId=result.data.id;
+    await loadSections();
+    await loadPhotos();
+    renderChapterManager();
+    toast("Chapter created.");
+    return true;
+  }
+  async function addChapterFromManager(){
+    if(state.chapterBusy)return;
+    const input=$("chapterNameInput");
+    const name=input.value.trim();
+    if(!name){input.focus();return}
+    state.chapterBusy=true;
+    try{
+      await createSection(name);
+      input.value="";
+      input.focus();
+    }catch(error){console.error(error);toast(error.message||"Could not create the chapter.")}
+    finally{state.chapterBusy=false}
+  }
+  async function saveChapterName(id,name){
+    const clean=String(name||"").trim().slice(0,120);
+    const chapter=state.sections.find(s=>s.id===id);
+    if(!chapter){return}
+    if(!clean){toast("Chapter name cannot be empty.");return}
+    if(clean===chapter.name)return;
+    if(state.chapterBusy)return;
+    state.chapterBusy=true;
+    try{
+      const result=await supabaseClient.from("sections").update({name:clean}).eq("id",id).eq("book_id",state.currentBookId);
+      if(result.error)throw result.error;
+      chapter.name=clean;
+      renderSectionSelector();
+      renderChapterManager();
+      renderReaderToc();
+      toast("Chapter renamed.");
+    }catch(error){console.error(error);toast(error.message||"Could not rename the chapter.")}
+    finally{state.chapterBusy=false}
+  }
+  async function persistChapterOrder(){
+    const chapters=sortChapters(state.sections);
+    await Promise.all(chapters.map((chapter,index)=>supabaseClient.from("sections").update({position:index}).eq("id",chapter.id).eq("book_id",state.currentBookId).then(result=>{if(result.error)throw result.error})));
+    state.sections=chapters.map((chapter,index)=>({...chapter,position:index}));
+  }
+  async function moveChapter(id,direction){
+    if(state.chapterBusy)return;
+    const chapters=sortChapters(state.sections);
+    const index=chapters.findIndex(s=>s.id===id);
+    const target=index+direction;
+    if(index<0||target<0||target>=chapters.length)return;
+    state.chapterBusy=true;
+    const reordered=[...chapters];
+    [reordered[index],reordered[target]]=[reordered[target],reordered[index]];
+    try{
+      state.sections=reordered.map((chapter,i)=>({...chapter,position:i}));
+      await persistChapterOrder();
+      renderSectionSelector();
+      renderChapterManager();
+      renderReaderToc();
+      toast("Chapter order saved.");
+    }catch(error){
+      console.error(error);
+      await loadSections();
+      toast(error.message||"Could not save chapter order.");
+    }finally{state.chapterBusy=false}
+  }
+  async function deleteChapter(id){
+    if(state.chapterBusy)return;
+    const chapter=state.sections.find(s=>s.id===id);
+    if(!chapter)return;
+    const count=state.chapterCounts[id]||0;
+    const message=count
+      ? "Delete “"+chapter.name+"”? Its "+count+" "+(count===1?"page":"pages")+" will stay in the book as Unassigned."
+      : "Delete “"+chapter.name+"”?";
+    if(!confirm(message))return;
+    state.chapterBusy=true;
+    try{
+      const result=await supabaseClient.from("sections").delete().eq("id",id).eq("book_id",state.currentBookId);
+      if(result.error)throw result.error;
+      if(state.currentSectionId===id)state.currentSectionId=null;
+      await loadSections();
+      await loadPhotos();
+      renderChapterManager();
+      toast("Chapter deleted.");
+    }catch(error){console.error(error);toast(error.message||"Could not delete the chapter.")}
+    finally{state.chapterBusy=false}
+  }
   async function loadBookSettings() {
     if (!state.user) { state.bookTitle = "My Book"; updateBookTitle(); return; }
     const { data, error } = await supabaseClient.from("book_settings").select("title").eq("user_id", state.user.id).maybeSingle();
@@ -814,22 +1029,32 @@
   }
 
   function renderReaderToc() {
-    const panel = $("tocSections");
-    panel.innerHTML = "";
-    const sections=state.readerMode==="public"?state.publicSections:state.sections;
-    const sectionIndexes = new Map();
-    state.readerPages.forEach((page, index) => {
-      if (page.type === "photo" && page.section && !sectionIndexes.has(page.section.id)) sectionIndexes.set(page.section.id, index);
+    const panel=$("tocSections");
+    panel.innerHTML="";
+    const sections=state.readerMode==="public"?sortChapters(state.publicSections):sortChapters(state.sections);
+    const sectionIndexes=new Map();
+    let unassignedIndex=null;
+    state.readerPages.forEach((page,index)=>{
+      if(page.type!=="photo")return;
+      if(page.section && !sectionIndexes.has(page.section.id))sectionIndexes.set(page.section.id,index);
+      if(!page.section && unassignedIndex===null)unassignedIndex=index;
     });
-    sections.forEach(section => {
-      const index = sectionIndexes.get(section.id);
-      if (index == null) return;
-      const btn = document.createElement("button");
-      btn.className = "toc-item";
-      btn.textContent = section.name;
-      btn.addEventListener("click", () => { state.readerIndex = index; $("readerTocPanel").classList.add("hidden"); renderReaderPage(); });
+    sections.forEach((chapter,index)=>{
+      const pageIndex=sectionIndexes.get(chapter.id);
+      if(pageIndex==null)return;
+      const btn=document.createElement("button");
+      btn.className="toc-item";
+      btn.textContent=(index+1)+". "+chapter.name;
+      btn.addEventListener("click",()=>{state.readerIndex=pageIndex;$("readerTocPanel").classList.add("hidden");renderReaderPage()});
       panel.appendChild(btn);
     });
+    if(unassignedIndex!==null){
+      const btn=document.createElement("button");
+      btn.className="toc-item";
+      btn.textContent="Unassigned pages";
+      btn.addEventListener("click",()=>{state.readerIndex=unassignedIndex;$("readerTocPanel").classList.add("hidden");renderReaderPage()});
+      panel.appendChild(btn);
+    }
   }
 
 
@@ -866,10 +1091,17 @@
   }
 
   function updateCount() {
-    const n = state.photos.length;
-    $("countText").textContent = n
-      ? `${n} ${n === 1 ? "photo" : "photos"} · drag to reorder`
-      : "Your photos, in the order you added them.";
+    const n=state.photos.length;
+    const chapter=state.sections.find(s=>s.id===state.currentSectionId);
+    if(chapter){
+      $("countText").textContent=n
+        ? chapter.name+" · "+n+" "+(n===1?"page":"pages")+" · drag to reorder"
+        : chapter.name+" · no pages yet";
+      return;
+    }
+    $("countText").textContent=n
+      ? n+" "+(n===1?"page":"pages")+" · drag to reorder"
+      : "Your book is empty. Add pages or create a chapter to organize them.";
   }
 
   function setAuthMessage(message = "", type = "") {
@@ -1105,9 +1337,44 @@
   async function saveProfile(){if(!state.user)return;const name=$("profileName").value.trim().slice(0,80);try{const {data,error}=await supabaseClient.auth.updateUser({data:{display_name:name}});if(error)throw error;state.user=data.user||state.user;state.profileName=name;$("profileStatus").textContent="Profile saved.";updateHeader();toast("Profile saved.")}catch(error){console.error(error);$("profileStatus").textContent=error.message||"Could not save profile.";toast(error.message||"Could not save profile.")}}
   window.openProfile = openProfile;
   window.saveProfile = saveProfile;
-  function openPhotoDetails(id){const photo=state.photos.find(p=>p.id===id);if(!photo)return;state.detailPhotoId=id;const book=state.books.find(b=>b.id===state.currentBookId);const section=state.sections.find(s=>s.id===photo.section_id);$("photoDetailsFilename").value=photo.filename||"";$("photoDetailsBook").value=book?.title||"Current book";$("photoDetailsSection").value=section?.name||"All sections";$("photoDetailsCaption").value=photo.caption||"";$("photoDetailsMeta").textContent="Added "+new Date(photo.created_at).toLocaleString()+" · position "+(photo.position+1);$("photoDetailsModal").classList.remove("hidden")}
+  function openPhotoDetails(id){
+    const photo=state.photos.find(p=>p.id===id);
+    if(!photo)return;
+    state.detailPhotoId=id;
+    const book=state.books.find(b=>b.id===state.currentBookId);
+    $("photoDetailsFilename").value=photo.filename||"";
+    $("photoDetailsBook").value=book?.title||"Current book";
+    const chapterSelect=$("photoDetailsChapter");
+    chapterSelect.innerHTML="";
+    const unassigned=document.createElement("option");
+    unassigned.value="";unassigned.textContent="Unassigned";
+    chapterSelect.appendChild(unassigned);
+    sortChapters(state.sections).forEach((chapter,index)=>{
+      const option=document.createElement("option");
+      option.value=chapter.id;
+      option.textContent=(index+1)+". "+chapter.name;
+      chapterSelect.appendChild(option);
+    });
+    chapterSelect.value=photo.section_id||"";
+    $("photoDetailsCaption").value=photo.caption||"";
+    $("photoDetailsMeta").textContent="Added "+new Date(photo.created_at).toLocaleString()+" · page "+(photo.position+1);
+    $("photoDetailsModal").classList.remove("hidden");
+  }
   function closePhotoDetails(){$("photoDetailsModal").classList.add("hidden");state.detailPhotoId=null}
-  async function savePhotoDetails(){const photo=state.photos.find(p=>p.id===state.detailPhotoId);if(!photo||!state.user)return;const saved=await saveCaption(photo,$("photoDetailsCaption").value);if(!saved)return;closePhotoDetails();render();toast("Caption saved.")}
+  async function savePhotoDetails(){
+    const photo=state.photos.find(p=>p.id===state.detailPhotoId);
+    if(!photo||!state.user)return;
+    const caption=$("photoDetailsCaption").value.trim().slice(0,500);
+    const sectionId=$("photoDetailsChapter").value||null;
+    const {error}=await supabaseClient.from("photos").update({caption,section_id:sectionId}).eq("id",photo.id).eq("user_id",state.user.id).eq("book_id",state.currentBookId);
+    if(error){console.error(error);toast(error.message||"Could not save page details.");return}
+    photo.caption=caption;
+    photo.section_id=sectionId;
+    closePhotoDetails();
+    await loadSections();
+    await loadPhotos();
+    toast(sectionId?"Page moved to chapter.":"Page moved to Unassigned.");
+  }
   async function deletePhotoFromDetails(){const id=state.detailPhotoId;if(!id)return;closePhotoDetails();await deletePhoto(id)}
   async function logout() {
     if (!supabaseClient) return;
@@ -1134,7 +1401,11 @@
     setLoading(true);
 
     try {
-      let nextPosition = state.photos.length;
+      // Positions are global to the whole book, not the currently filtered chapter.
+      // Never use state.photos.length here because a chapter filter may hide other pages.
+      const latest=await supabaseClient.from("photos").select("position").eq("book_id",state.currentBookId).order("position",{ascending:false}).limit(1).maybeSingle();
+      if(latest.error)throw latest.error;
+      let nextPosition=(latest.data?.position ?? -1)+1;
 
       for (const file of imageFiles) {
         const id = crypto.randomUUID();
@@ -1453,8 +1724,8 @@
           if(state.user){
             await loadBooks(); await loadFavorites(); await loadPhotos(); renderBookLibrary(); renderFavoritesLibrary();
           }else{
-            state.books=[];state.sections=[];state.photos=[];state.currentBookId=null;state.currentSectionId=null;state.bookTitle="My Book";state.favorites=new Set();state.bookmarks=[];state.savedBookmarks=[];
-            renderBookSelector();renderSectionSelector();render();closeLibrary();closeFavorites();closeReader();closeViewer();closePhotoDetails();
+            state.books=[];state.sections=[];state.chapterCounts={};state.photos=[];state.currentBookId=null;state.currentSectionId=null;state.bookTitle="My Book";state.favorites=new Set();state.bookmarks=[];state.savedBookmarks=[];
+            renderBookSelector();renderSectionSelector();render();closeLibrary();closeFavorites();closeChapterManager();closeReader();closeViewer();closePhotoDetails();
             state.publicBook=null;state.publicPhotos=[];state.publicSections=[];
           }
           if(event==="PASSWORD_RECOVERY"){
@@ -1498,8 +1769,14 @@
 
   $("bookSelect").addEventListener("change",e=>selectBook(e.target.value));
   $("newBookButton").addEventListener("click",()=>{if(!state.user){openAuth("login");return;}createBook()});
-  $("newSectionButton").addEventListener("click",()=>{if(!state.user){openAuth("login");return;}createSection()});
+  $("newSectionButton").addEventListener("click",async()=>{if(!state.user){openAuth("login");return;}const name=prompt("Chapter name","Chapter "+(state.sections.length+1));if(name?.trim())try{await createSection(name)}catch(error){console.error(error);toast(error.message||"Could not create the chapter.")}});
+  $("manageSectionsButton").addEventListener("click",openChapterManager);
   $("sectionSelect").addEventListener("change",async e=>{if(!state.user)return;state.currentSectionId=e.target.value||null;await loadPhotos()});
+  $("chapterManagerClose").addEventListener("click",closeChapterManager);
+  $("chapterManagerDone").addEventListener("click",closeChapterManager);
+  $("chapterAddButton").addEventListener("click",addChapterFromManager);
+  $("chapterNameInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addChapterFromManager()}});
+  $("chapterManagerModal").addEventListener("click",e=>{if(e.target===$("chapterManagerModal"))closeChapterManager()});
   $("bookMenuButton").addEventListener("click",()=>$("bookMenuPanel").classList.toggle("hidden"));$("themeButton").addEventListener("click",toggleTheme);$("editBookButton").addEventListener("click",()=>{$("bookMenuPanel").classList.add("hidden");editBookDetails()});$("deleteBookButton").addEventListener("click",()=>{$("bookMenuPanel").classList.add("hidden");deleteCurrentBook()});$("coverButton").addEventListener("click",()=>{$("bookMenuPanel").classList.add("hidden");if(!state.user){openAuth("login");return;}$("coverInput").click()});
   $("coverInput").addEventListener("change",async e=>{
     const file=e.target.files[0];
@@ -1688,6 +1965,7 @@ $("favoritesButton").addEventListener("click",()=>openSaved("favorites"));$("boo
   $("photoDetailsDownload").addEventListener("click",()=>{const p=state.photos.find(x=>x.id===state.detailPhotoId);if(p)downloadPhoto(p)});
   $("photoDetailsDelete").addEventListener("click",deletePhotoFromDetails);
   $("photoDetailsModal").addEventListener("click",e=>{if(e.target===$("photoDetailsModal"))closePhotoDetails()});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("chapterManagerModal").classList.contains("hidden"))closeChapterManager()});
 
   window.addEventListener("error", event => {
     console.error("Digital Book runtime error:", event.error || event.message);
