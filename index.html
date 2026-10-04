@@ -287,7 +287,9 @@
           persistSession: true,
           autoRefreshToken: true,
           detectSessionInUrl: true,
-          lockAcquireTimeout: 5000
+          storage: window.localStorage,
+          storageKey: "digital-book-auth",
+          lockAcquireTimeout: 10000
         }
       });
     } catch (error) {
@@ -298,6 +300,8 @@
 
   const state = {
     user: null,
+    session: null,
+    authReady: false,
     photos: [],
     books: [],
     sections: [],
@@ -442,7 +446,7 @@
     await loadBooks();
     await loadPhotos();
   }
-  function openLibrary(){if(!state.user){openAuth("login");return;}renderBookLibrary();$("libraryModal").classList.remove("hidden")}
+  async function openLibrary(){if(!await requireSession())return;renderBookLibrary();$("libraryModal").classList.remove("hidden")}
   function closeLibrary(){$("libraryModal").classList.add("hidden")}
   function renderBookLibrary(){const panel=$("bookLibrary");if(!panel)return;panel.innerHTML="";state.books.forEach(book=>{const tile=document.createElement("div");tile.className="book-tile";const cover=document.createElement("div");if(book.cover_path){const img=document.createElement("img");img.className="book-tile-cover";img.alt=book.title+" cover";supabaseClient.storage.from("photos").createSignedUrl(book.cover_path,3600).then(x=>{if(!x.error)img.src=x.data.signedUrl});cover.appendChild(img)}else{cover.className="book-tile-empty";cover.textContent="No cover"}const title=document.createElement("div");title.className="book-tile-title";title.textContent=book.title;const meta=document.createElement("div");meta.className="book-tile-meta";meta.innerHTML=(book.is_public?'<span class="visibility-public">● Published</span>':'<span class="visibility-private">● Private</span>')+" · "+(book.id===state.currentBookId?"Open":"Saved");const actions=document.createElement("div");actions.className="library-actions";const open=document.createElement("button");open.className="btn";open.textContent="Open";open.onclick=async()=>{closeLibrary();await selectBook(book.id)};const read=document.createElement("button");read.className="btn";read.textContent="Read";read.onclick=async()=>{closeLibrary();await selectBook(book.id);openReader()};const fav=document.createElement("button");fav.className="btn";fav.textContent=state.favorites.has(book.id)?"♥":"♡";fav.title="Favorite";fav.onclick=()=>toggleFavorite(book.id);actions.append(open,read,fav);tile.append(cover,title,meta,actions);panel.appendChild(tile)})}
 
@@ -829,7 +833,7 @@
 
 
   async function loadFavorites(){state.favorites=new Set();if(!state.user)return;const {data,error}=await supabaseClient.from("book_favorites").select("book_id").eq("user_id",state.user.id);if(error){console.error(error);return}(data||[]).forEach(x=>state.favorites.add(x.book_id))}
-  async function toggleFavorite(bookId){if(!state.user){openAuth("login");return}try{if(state.favorites.has(bookId)){const {error}=await supabaseClient.from("book_favorites").delete().eq("user_id",state.user.id).eq("book_id",bookId);if(error)throw error;state.favorites.delete(bookId);toast("Removed from favorites.")}else{const {error}=await supabaseClient.from("book_favorites").insert({user_id:state.user.id,book_id:bookId});if(error)throw error;state.favorites.add(bookId);toast("Added to favorites.")}renderBookLibrary();renderFavoritesLibrary();await loadPublicBooks($("publicSearch").value)}catch(error){console.error(error);toast(error.message||"Could not update favorite.")}}
+  async function toggleFavorite(bookId){if(!await requireSession())return;try{if(state.favorites.has(bookId)){const {error}=await supabaseClient.from("book_favorites").delete().eq("user_id",state.user.id).eq("book_id",bookId);if(error)throw error;state.favorites.delete(bookId);toast("Removed from favorites.")}else{const {error}=await supabaseClient.from("book_favorites").insert({user_id:state.user.id,book_id:bookId});if(error)throw error;state.favorites.add(bookId);toast("Added to favorites.")}renderBookLibrary();renderFavoritesLibrary();await loadPublicBooks($("publicSearch").value)}catch(error){console.error(error);toast(error.message||"Could not update favorite.")}}
   async function loadFavoriteBooks(){
     const panel=$("favoritesLibrary");if(!panel)return;
     if(!state.user){panel.innerHTML='<div class="empty" style="padding:30px">Log in to see your favorites.</div>';return}
@@ -860,12 +864,12 @@
   async function loadBookmarks(){state.bookmarks=[];if(!state.user||!state.currentBookId)return;const {data,error}=await supabaseClient.from("bookmarks").select("id,book_id,photo_id,page_index,created_at").eq("user_id",state.user.id).eq("book_id",state.currentBookId).order("created_at",{ascending:false});if(error){console.error(error);return}state.bookmarks=data||[]}
   async function loadAllBookmarks(){state.savedBookmarks=[];if(!state.user)return;const {data,error}=await supabaseClient.from("bookmarks").select("id,book_id,photo_id,page_index,created_at").eq("user_id",state.user.id).order("created_at",{ascending:false});if(error)throw error;state.savedBookmarks=data||[]}
   function isCurrentPageBookmarked(){const page=state.readerPages[state.readerIndex];return !!(page&&page.photo&&state.bookmarks.some(b=>b.photo_id===page.photo.id))}
-  async function toggleReaderBookmark(){if(!state.user||state.readerMode!=="private"){if(!state.user)openAuth("login");return}const page=state.readerPages[state.readerIndex];if(!page||!page.photo)return;const existing=state.bookmarks.find(b=>b.photo_id===page.photo.id);try{if(existing){const {error}=await supabaseClient.from("bookmarks").delete().eq("id",existing.id).eq("user_id",state.user.id);if(error)throw error;state.bookmarks=state.bookmarks.filter(b=>b.id!==existing.id);state.savedBookmarks=state.savedBookmarks.filter(b=>b.id!==existing.id);toast("Bookmark removed")}else{const {data,error}=await supabaseClient.from("bookmarks").insert({user_id:state.user.id,book_id:state.currentBookId,photo_id:page.photo.id,page_index:state.readerIndex}).select("id,book_id,photo_id,page_index,created_at").single();if(error)throw error;state.bookmarks.unshift(data);state.savedBookmarks.unshift(data);toast("Page bookmarked")}updateReaderBookmark();if(!$("favoritesModal").classList.contains("hidden"))renderSaved()}catch(error){console.error(error);toast(error.message||"Could not update bookmark.")}}
+  async function toggleReaderBookmark(){if(state.readerMode!=="private")return;if(!await requireSession())return;const page=state.readerPages[state.readerIndex];if(!page||!page.photo)return;const existing=state.bookmarks.find(b=>b.photo_id===page.photo.id);try{if(existing){const {error}=await supabaseClient.from("bookmarks").delete().eq("id",existing.id).eq("user_id",state.user.id);if(error)throw error;state.bookmarks=state.bookmarks.filter(b=>b.id!==existing.id);state.savedBookmarks=state.savedBookmarks.filter(b=>b.id!==existing.id);toast("Bookmark removed")}else{const {data,error}=await supabaseClient.from("bookmarks").insert({user_id:state.user.id,book_id:state.currentBookId,photo_id:page.photo.id,page_index:state.readerIndex}).select("id,book_id,photo_id,page_index,created_at").single();if(error)throw error;state.bookmarks.unshift(data);state.savedBookmarks.unshift(data);toast("Page bookmarked")}updateReaderBookmark();if(!$("favoritesModal").classList.contains("hidden"))renderSaved()}catch(error){console.error(error);toast(error.message||"Could not update bookmark.")}}
   function updateReaderBookmark(){const b=$("readerBookmark");if(!b)return;const active=isCurrentPageBookmarked();b.classList.toggle("active",active);b.textContent=active?"🔖 Saved":"🔖";b.title=active?"Remove bookmark":"Bookmark this page"}
   async function openBookmark(saved){try{const book=state.books.find(x=>x.id===saved.book_id);if(!book){toast("This book is no longer available.");return}closeFavorites();await selectBook(book.id);buildReaderPages();const i=state.readerPages.findIndex(x=>x.type==="photo"&&x.photo.id===saved.photo_id);if(i<0){toast("This page is no longer available.");return}state.readerMode="private";state.readerIndex=i;await loadBookmarks();$("reader").classList.remove("hidden");await renderReaderPage();renderReaderToc()}catch(error){console.error(error);toast(error.message||"Could not open bookmark.")}}
   function renderSavedBookmarks(){const list=$("savedBookmarkList");if(!list)return;list.innerHTML="";if(!state.savedBookmarks.length){list.innerHTML='<div class="empty" style="padding:30px">No bookmarks yet. Open a book, tap 🔖, and it will appear here.</div>';return}const bookMap=new Map(state.books.map(b=>[b.id,b]));const photoMap=new Map(state.photos.map(p=>[p.id,p]));state.savedBookmarks.forEach(b=>{const row=document.createElement("div");row.className="bookmark-row";const info=document.createElement("div");const title=document.createElement("strong");title.textContent=bookMap.get(b.book_id)?.title||"Book";const sub=document.createElement("div");sub.style.cssText="font-size:12px;color:var(--muted);margin-top:3px";sub.textContent=photoMap.get(b.photo_id)?.filename||"Saved page";info.append(title,sub);const actions=document.createElement("div");actions.style.cssText="display:flex;gap:6px";const open=document.createElement("button");open.className="btn";open.type="button";open.textContent="Open";open.onclick=()=>openBookmark(b);const remove=document.createElement("button");remove.className="btn";remove.type="button";remove.textContent="Remove";remove.onclick=async()=>{const {error}=await supabaseClient.from("bookmarks").delete().eq("id",b.id).eq("user_id",state.user.id);if(error){toast(error.message);return}state.savedBookmarks=state.savedBookmarks.filter(x=>x.id!==b.id);if(state.currentBookId===b.book_id)state.bookmarks=state.bookmarks.filter(x=>x.id!==b.id);renderSavedBookmarks();updateReaderBookmark();toast("Bookmark removed.")};actions.append(open,remove);row.append(info,actions);list.appendChild(row)})}
   async function renderSaved(){if(!state.user)return;await loadFavorites();await loadAllBookmarks();if(state.savedTab==="bookmarks"){renderSavedBookmarks();$("savedFavoritesPanel").classList.add("hidden");$("savedBookmarksPanel").classList.remove("hidden")}else{await loadFavoriteBooks();$("savedFavoritesPanel").classList.remove("hidden");$("savedBookmarksPanel").classList.add("hidden")}$("savedFavoritesTab").classList.toggle("primary",state.savedTab==="favorites");$("savedBookmarksTab").classList.toggle("primary",state.savedTab==="bookmarks")}
-  function openSaved(tab="favorites"){if(!state.user){openAuth("login");return}state.savedTab=tab;$("favoritesModal").classList.remove("hidden");renderSaved().catch(error=>{console.error(error);toast(error.message||"Could not load saved items.")})}
+  async function openSaved(tab="favorites"){if(!await requireSession())return;state.savedTab=tab;$("favoritesModal").classList.remove("hidden");renderSaved().catch(error=>{console.error(error);toast(error.message||"Could not load saved items.")})}
   function openFavorites(){openSaved("favorites")}
   function closeFavorites(){$("favoritesModal").classList.add("hidden")}
   function buildReaderPages() {
@@ -887,7 +891,7 @@
 
   async function openReader() {
     state.readerMode="private";
-    if (!state.user) { openAuth("login"); return; }
+    if (!await requireSession()) return;
     buildReaderPages();
     if (!state.readerPages.length) { toast("Add some photos before opening Reading Mode."); return; }
     state.readerIndex = 0;
@@ -1333,8 +1337,8 @@
     }
   }
 
-  function openProfile(){if(!state.user){openAuth("login");return}const u=state.user;$("profileEmail").value=u.email||"";$("profileName").value=u.user_metadata?.display_name||u.user_metadata?.full_name||"";$("profileStatus").textContent="Signed in";$("profileModal").classList.remove("hidden")}
-  async function saveProfile(){if(!state.user)return;const name=$("profileName").value.trim().slice(0,80);try{const {data,error}=await supabaseClient.auth.updateUser({data:{display_name:name}});if(error)throw error;state.user=data.user||state.user;state.profileName=name;$("profileStatus").textContent="Profile saved.";updateHeader();toast("Profile saved.")}catch(error){console.error(error);$("profileStatus").textContent=error.message||"Could not save profile.";toast(error.message||"Could not save profile.")}}
+  async function openProfile(){if(!await requireSession())return;const u=state.user;$("profileEmail").value=u.email||"";$("profileName").value=u.user_metadata?.display_name||u.user_metadata?.full_name||"";$("profileStatus").textContent="Signed in";$("profileModal").classList.remove("hidden")}
+  async function saveProfile(){if(!await requireSession())return;const name=$("profileName").value.trim().slice(0,80);try{const {data,error}=await supabaseClient.auth.updateUser({data:{display_name:name}});if(error)throw error;state.user=data.user||state.user;state.profileName=name;$("profileStatus").textContent="Profile saved.";updateHeader();toast("Profile saved.")}catch(error){console.error(error);$("profileStatus").textContent=error.message||"Could not save profile.";toast(error.message||"Could not save profile.")}}
   window.openProfile = openProfile;
   window.saveProfile = saveProfile;
   function openPhotoDetails(id){
@@ -1382,6 +1386,8 @@
     if(error)toast(error.message);
   }
   window.logout = logout;
+  window.ensureSession = ensureSession;
+  window.requireSession = requireSession;
 
   function extensionFor(file) {
     const ext = file.name.includes(".") ? file.name.split(".").pop().toLowerCase() : "jpg";
@@ -1389,8 +1395,7 @@
   }
 
   async function uploadFiles(files) {
-    if (!state.user) {
-      openAuth("login");
+    if (!await requireSession()) {
       toast("Log in first so your book works on every device.");
       return;
     }
@@ -1702,63 +1707,128 @@
     img.alt=b.title+" cover";
     area.appendChild(img);
   }
-  async function init() {applyTheme();
+  let authEventBusy = false;
+
+  function applySession(session, source = "unknown") {
+    state.session = session || null;
+    state.user = session?.user || null;
+    state.profileName = state.user?.user_metadata?.display_name || "";
+    state.authReady = true;
+    updateHeader();
+    console.debug("Digital Book auth session:", source, state.user ? "signed in" : "signed out");
+  }
+
+  async function ensureSession() {
+    if (!supabaseClient) return null;
+    if (state.user && state.session) return state.session;
+    try {
+      const { data, error } = await supabaseClient.auth.getSession();
+      if (error) throw error;
+      applySession(data?.session || null, "ensureSession");
+      return state.session;
+    } catch (error) {
+      console.error("Session restore failed:", error);
+      return null;
+    }
+  }
+
+  async function requireSession() {
+    const session = await ensureSession();
+    if (!session?.user) {
+      openAuth("login");
+      return null;
+    }
+    return session;
+  }
+
+  async function refreshPrivateState() {
+    const session = await ensureSession();
+    if (!session?.user) return false;
+    try {
+      await loadBooks();
+      await loadFavorites();
+      await loadPhotos();
+      await loadAllBookmarks();
+      renderBookSelector();
+      renderSectionSelector();
+      renderFavoritesLibrary();
+      render();
+      return true;
+    } catch (error) {
+      console.error("Private state refresh failed:", error);
+      toast(error.message || "Could not load your account data.");
+      return false;
+    }
+  }
+
+  async function handleAuthEvent(event, session) {
+    if (event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED") {
+      if (session) applySession(session, event);
+      return;
+    }
+
+    if (event === "SIGNED_IN" || event === "USER_UPDATED" || event === "PASSWORD_RECOVERY") {
+      if (session) applySession(session, event);
+      if (event === "SIGNED_IN") {
+        await refreshPrivateState();
+        await loadPublicBooks($("publicSearch").value);
+      }
+      if (event === "PASSWORD_RECOVERY") {
+        const newPassword = prompt("Choose a new password (at least 6 characters):");
+        if (newPassword === null) return;
+        if (newPassword.length < 6) {
+          toast("Password must be at least 6 characters.");
+          return;
+        }
+        const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+        toast(error ? error.message : "Password updated successfully.");
+      }
+      return;
+    }
+
+    if (event === "SIGNED_OUT") {
+      applySession(null, event);
+      state.books=[]; state.sections=[]; state.chapterCounts={}; state.photos=[];
+      state.currentBookId=null; state.currentSectionId=null; state.bookTitle="My Book";
+      state.favorites=new Set(); state.bookmarks=[]; state.savedBookmarks=[];
+      renderBookSelector(); renderSectionSelector(); render();
+      closeLibrary(); closeFavorites(); closeChapterManager(); closeReader(); closeViewer(); closePhotoDetails();
+      state.publicBook=null; state.publicPhotos=[]; state.publicSections=[];
+      await loadPublicBooks($("publicSearch").value);
+    }
+  }
+
+  async function init() {
+    applyTheme();
     if (!CONFIGURED) {
       $("syncStatus").innerHTML = '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#ff9f0a;margin-right:5px"></span>Setup required';
       $("empty").classList.remove("hidden");
       $("empty").innerHTML = '<h2>One-time setup required.</h2><p>Add your Supabase URL and anon key near the bottom of <strong>index.html</strong>, then reload the page.</p>';
       return;
     }
-    supabaseClient.auth.onAuthStateChange((event, session) => {
-      state.user=session?.user||null;
-      state.profileName=state.user?.user_metadata?.display_name||"";
-      updateHeader();
-      setTimeout(async()=>{
-        try{
-          // The initial public catalog is loaded once below, after getSession().
-          // Only real auth transitions refresh it here; INITIAL_SESSION and token
-          // refresh events must not compete with the startup catalog request.
-          if(event==="SIGNED_IN" || event==="SIGNED_OUT"){
-            await loadPublicBooks($("publicSearch").value);
-          }
-          if(state.user){
-            await loadBooks(); await loadFavorites(); await loadPhotos(); renderBookLibrary(); renderFavoritesLibrary();
-          }else{
-            state.books=[];state.sections=[];state.chapterCounts={};state.photos=[];state.currentBookId=null;state.currentSectionId=null;state.bookTitle="My Book";state.favorites=new Set();state.bookmarks=[];state.savedBookmarks=[];
-            renderBookSelector();renderSectionSelector();render();closeLibrary();closeFavorites();closeChapterManager();closeReader();closeViewer();closePhotoDetails();
-            state.publicBook=null;state.publicPhotos=[];state.publicSections=[];
-          }
-          if(event==="PASSWORD_RECOVERY"){
-            const newPassword=prompt("Choose a new password (at least 6 characters):");
-            if(newPassword===null)return;
-            if(newPassword.length<6){toast("Password must be at least 6 characters.");return}
-            const {error}=await supabaseClient.auth.updateUser({password:newPassword});
-            toast(error?error.message:"Password updated successfully.");
-          }
-        }catch(error){console.error(error);toast(error.message||"Could not refresh your account.")}
-      },0);
-    });
-    // Restore the session first, then fetch the public catalog so the first visible request
-    // cannot be replaced by an older auth-state refresh.
-    const {data,error}=await supabaseClient.auth.getSession();
-    if(error)console.warn("Could not restore session:",error);
-    state.user=data.session?.user||null;
-    state.profileName=state.user?.user_metadata?.display_name||"";
-    updateHeader(); render();
-    // Always perform the first public-library fetch after the page/session state is ready.
-    await loadPublicBooks($("publicSearch").value);
-    if(state.user){
-      try{await loadBooks();await loadFavorites();await loadPhotos();await loadAllBookmarks();renderFavoritesLibrary()}
-      catch(error){console.error("Private book initialization failed:",error);toast(error.message||"Could not load your account books.")}
-    }
-  }
 
-  $("chooseButton").addEventListener("click", () => {if(!state.user){openAuth("login");return;}$("fileInput").click();});
-  $("headerUpload").addEventListener("click", () => {
-    if (!state.user) {
-      openAuth("login");
-      return;
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      Promise.resolve(handleAuthEvent(event, session))
+        .catch(error => {
+          console.error("Auth event handling failed:", error);
+          toast(error.message || "Could not update your session.");
+        });
+    });
+
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) {
+      console.error("Could not restore session:", error);
+      applySession(null, "startup-error");
+    } else {
+      applySession(data?.session || null, "startup");
     }
+
+    await loadPublicBooks($("publicSearch").value);
+    if (state.user) await refreshPrivateState();
+  }
+  $("chooseButton").addEventListener("click", async () => {if(!await requireSession())return;$("fileInput").click();});
+  $("headerUpload").addEventListener("click", async () => {
+    if (!await requireSession()) return;
     $("fileInput").click();
   });
 
@@ -1768,8 +1838,8 @@
   });
 
   $("bookSelect").addEventListener("change",e=>selectBook(e.target.value));
-  $("newBookButton").addEventListener("click",()=>{if(!state.user){openAuth("login");return;}createBook()});
-  $("newSectionButton").addEventListener("click",async()=>{if(!state.user){openAuth("login");return;}const name=prompt("Chapter name","Chapter "+(state.sections.length+1));if(name?.trim())try{await createSection(name)}catch(error){console.error(error);toast(error.message||"Could not create the chapter.")}});
+  $("newBookButton").addEventListener("click",async()=>{if(!await requireSession())return;createBook()});
+  $("newSectionButton").addEventListener("click",async()=>{if(!await requireSession())return;const name=prompt("Chapter name","Chapter "+(state.sections.length+1));if(name?.trim())try{await createSection(name)}catch(error){console.error(error);toast(error.message||"Could not create the chapter.")}});
   $("manageSectionsButton").addEventListener("click",openChapterManager);
   $("sectionSelect").addEventListener("change",async e=>{if(!state.user)return;state.currentSectionId=e.target.value||null;await loadPhotos()});
   $("chapterManagerClose").addEventListener("click",closeChapterManager);
@@ -1777,7 +1847,7 @@
   $("chapterAddButton").addEventListener("click",addChapterFromManager);
   $("chapterNameInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addChapterFromManager()}});
   $("chapterManagerModal").addEventListener("click",e=>{if(e.target===$("chapterManagerModal"))closeChapterManager()});
-  $("bookMenuButton").addEventListener("click",()=>$("bookMenuPanel").classList.toggle("hidden"));$("themeButton").addEventListener("click",toggleTheme);$("editBookButton").addEventListener("click",()=>{$("bookMenuPanel").classList.add("hidden");editBookDetails()});$("deleteBookButton").addEventListener("click",()=>{$("bookMenuPanel").classList.add("hidden");deleteCurrentBook()});$("coverButton").addEventListener("click",()=>{$("bookMenuPanel").classList.add("hidden");if(!state.user){openAuth("login");return;}$("coverInput").click()});
+  $("bookMenuButton").addEventListener("click",()=>$("bookMenuPanel").classList.toggle("hidden"));$("themeButton").addEventListener("click",toggleTheme);$("editBookButton").addEventListener("click",()=>{$("bookMenuPanel").classList.add("hidden");editBookDetails()});$("deleteBookButton").addEventListener("click",()=>{$("bookMenuPanel").classList.add("hidden");deleteCurrentBook()});$("coverButton").addEventListener("click",async()=>{$("bookMenuPanel").classList.add("hidden");if(!await requireSession())return;$("coverInput").click()});
   $("coverInput").addEventListener("change",async e=>{
     const file=e.target.files[0];
     e.target.value="";
@@ -2044,7 +2114,7 @@ $("favoritesButton").addEventListener("click",()=>openSaved("favorites"));$("boo
       if(status) status.textContent="Signed in";
       modal?.classList.remove("hidden");
     },
-    authButton:()=>(typeof state!=="undefined" && state.user) ? window.logout?.() : window.openAuth?.("login"),
+    authButton:async()=>{if(typeof window.ensureSession==="function" && await window.ensureSession()){window.logout?.();}else window.openAuth?.("login");},
     discoverButton:()=>document.getElementById("discoverSection")?.scrollIntoView({behavior:"smooth"}),
     libraryButton:()=>window.openLibrary?.(),
     favoritesButton:()=>window.openSaved?.("favorites"),
