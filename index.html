@@ -406,6 +406,9 @@ main{
   .inpage-upload{align-items:flex-start}
 }
 
+
+/* AUTHOR SYSTEM V5 */
+.author-studio{width:min(760px,100%);padding:0;overflow:hidden}.author-hero{display:grid;grid-template-columns:120px minmax(0,1fr);gap:20px;padding:26px 26px 20px;background:linear-gradient(135deg,var(--surface2),var(--surface))}.author-avatar{width:120px;height:120px;border-radius:28px;object-fit:cover;background:#202024;border:1px solid var(--line);display:grid;place-items:center;font-size:42px;font-weight:800;color:var(--muted);overflow:hidden}.author-avatar img{width:100%;height:100%;object-fit:cover}.author-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:800}.author-hero h2{margin:5px 0;font-size:30px;letter-spacing:-1.2px}.author-slug{color:var(--muted);font-size:13px}.author-stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.author-stat{padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:12px}.author-form{padding:20px 26px 26px}.author-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.author-form-grid .full{grid-column:1/-1}.author-form textarea{width:100%;min-height:110px;resize:vertical}.author-avatar-actions{display:flex;gap:8px;align-items:center;margin-top:9px}.author-public-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px;border:1px solid var(--line);border-radius:14px;background:var(--surface2);margin-top:14px}.author-public-row strong{font-size:13px}.author-public-row span{display:block;color:var(--muted);font-size:12px;margin-top:3px}.author-toggle{width:46px;height:28px;border:0;border-radius:999px;background:#444;position:relative;padding:0}.author-toggle:after{content:"";position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.18s}.author-toggle.active{background:#34c759}.author-toggle.active:after{left:22px}.author-books{padding:0 26px 26px}.author-books h3{margin:0 0 12px;font-size:16px}.author-book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}.author-book-mini{border:1px solid var(--line);background:var(--surface2);border-radius:14px;padding:8px;text-align:left;color:var(--text)}.author-book-mini:hover{border-color:#666}.author-book-mini img,.author-book-mini .empty-cover{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:9px;background:#202024;display:grid;place-items:center;color:#777}.author-book-mini strong{display:block;margin:8px 2px 1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.author-book-mini small{display:block;color:var(--muted);margin:0 2px}.author-link{border:0;background:transparent;color:inherit;padding:0;font:inherit;text-align:left;cursor:pointer}.public-card-author .author-link:hover{text-decoration:underline}.author-public-profile{width:min(760px,100%);overflow:hidden}.author-public-profile .author-hero{grid-template-columns:96px minmax(0,1fr)}.author-public-profile .author-avatar{width:96px;height:96px;border-radius:24px;font-size:34px}.author-public-profile .author-bio{color:var(--muted);line-height:1.55;margin:12px 0;white-space:pre-wrap}.author-public-profile .author-links{display:flex;gap:8px;flex-wrap:wrap}.author-public-profile .author-links a{color:var(--text);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:12px}@media(max-width:650px){.author-hero{grid-template-columns:76px minmax(0,1fr);gap:14px;padding:20px}.author-avatar{width:76px;height:76px;border-radius:20px;font-size:28px}.author-hero h2{font-size:24px}.author-form{padding:16px 20px 20px}.author-form-grid{grid-template-columns:1fr}.author-form-grid .full{grid-column:auto}.author-books{padding:0 20px 20px}}
 </style>
 </head>
 <body>
@@ -455,7 +458,7 @@ main{
   </div>
 </section></main></div>
 
-<div id="bookEditModal" aria-hidden="true" style="display:none!important" class="modal-backdrop hidden"><div class="modal"><h2>Edit book</h2><p>Change the title, author, and description in one place.</p><div class="field"><label for="editBookTitle">Book name</label><input id="editBookTitle" maxlength="120"></div><div class="field"><label for="editBookAuthor">Author / creator</label><input id="editBookAuthor" maxlength="160"></div><div class="field"><label for="editBookDescription">Description</label><input id="editBookDescription" maxlength="1000"></div><div class="modal-actions"><button class="btn" id="bookEditCancel">Cancel</button><button class="btn primary" id="bookEditSave">Save</button></div></div></div><div id="profileModal" class="modal-backdrop hidden"><div class="modal"><h2>Profile</h2><p>Your account information and session controls.</p><div class="field"><label for="profileEmail">Email</label><input id="profileEmail" type="email" readonly></div><div class="field"><label for="profileName">Display name</label><input id="profileName" maxlength="80" placeholder="Your name"></div><div id="profileStatus" class="auth-message" role="status"></div><div class="modal-actions"><button class="btn" id="profileCancel">Close</button><button class="btn" id="profileLogout">Log out</button><button class="btn primary" id="profileSave">Save</button></div></div></div>
+<div id="bookEditModal" aria-hidden="true" style="display:none!important" class="modal-backdrop hidden"><div class="modal"><h2>Edit book</h2><p>Change the title, author, and description in one place.</p><div class="field"><label for="editBookTitle">Book name</label><input id="editBookTitle" maxlength="120"></div><div class="field"><label for="editBookAuthor">Author / creator</label><input id="editBookAuthor" maxlength="160"></div><div class="field"><label for="editBookDescription">Description</label><input id="editBookDescription" maxlength="1000"></div><div class="modal-actions"><button class="btn" id="bookEditCancel">Cancel</button><button class="btn primary" id="bookEditSave">Save</button></div></div></div><div id="profileModal" class="modal-backdrop hidden"><div class="modal"><h2>Author Studio</h2><p>Your account information and session controls.</p><div class="field"><label for="profileEmail">Email</label><input id="profileEmail" type="email" readonly></div><div class="field"><label for="profileName">Display name</label><input id="profileName" maxlength="80" placeholder="Your name"></div><div id="profileStatus" class="auth-message" role="status"></div><div class="modal-actions"><button class="btn" id="profileCancel">Close</button><button class="btn" id="profileLogout">Log out</button><button class="btn primary" id="profileSave">Save</button></div></div></div>
 <div id="authModal" class="modal-backdrop hidden">
   <div class="modal">
     <h2 id="authTitle">Log in</h2>
@@ -516,7 +519,163 @@ main{
   <div class="viewer-counter" id="viewerCounter"></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1">
+/* V5 AUTHOR SYSTEM
+   Keeps authentication in Supabase Auth, while public author identity lives
+   in author_profiles. The UI is intentionally separate from login/account data.
+*/
+(function(){
+  const authorStudioHTML=`
+    <div id="authorStudioModal" class="modal-backdrop hidden">
+      <div class="modal author-studio">
+        <div class="author-hero">
+          <div class="author-avatar" id="authorStudioAvatar">A</div>
+          <div>
+            <div class="author-kicker">Author Studio</div>
+            <h2 id="authorStudioTitle">Your author profile</h2>
+            <div class="author-slug" id="authorStudioSlug">@author</div>
+            <div class="author-stats"><span class="author-stat" id="authorStudioBooks">0 books</span><span class="author-stat" id="authorStudioPublished">0 published</span></div>
+          </div>
+        </div>
+        <div class="author-form">
+          <div class="author-form-grid">
+            <label class="field"><span>Account email</span><input id="authorEmail" type="email" readonly></label>
+            <label class="field"><span>Author name</span><input id="authorName" maxlength="80" placeholder="How readers should know you"></label>
+            <label class="field full"><span>Public handle</span><input id="authorSlug" maxlength="60" placeholder="your-name"><small style="color:var(--muted)">Used for your public author page.</small></label>
+            <label class="field full"><span>Bio</span><textarea id="authorBio" maxlength="800" placeholder="Tell readers what you create, teach, or write about."></textarea></label>
+            <label class="field"><span>Website</span><input id="authorWebsite" maxlength="240" type="url" placeholder="https://example.com"></label>
+            <div class="field"><span>Profile picture</span><div class="author-avatar-actions"><input id="authorAvatarInput" type="file" accept="image/*" class="hidden"><button class="btn" id="authorAvatarChoose" type="button">Choose image</button><button class="btn" id="authorAvatarRemove" type="button">Remove</button></div></div>
+          </div>
+          <div class="author-public-row"><div><strong>Public author page</strong><span>Readers can discover you and see your published books.</span></div><button class="author-toggle" id="authorPublicToggle" type="button"></button></div>
+          <div id="authorStudioStatus" class="auth-message" role="status"></div>
+        </div>
+        <div class="author-books"><h3>Your books</h3><div id="authorStudioBookGrid" class="author-book-grid"></div></div>
+        <div class="modal-actions" style="padding:0 26px 26px"><button class="btn" id="authorStudioClose">Close</button><button class="btn" id="authorStudioLogout">Log out</button><button class="btn primary" id="authorStudioSave">Save profile</button></div>
+      </div>
+    </div>
+    <div id="publicAuthorModal" class="modal-backdrop hidden">
+      <div class="modal author-public-profile">
+        <div class="author-hero"><div class="author-avatar" id="publicAuthorAvatar">A</div><div><div class="author-kicker">Author</div><h2 id="publicAuthorTitle">Author</h2><div class="author-slug" id="publicAuthorSlug">@author</div><div class="author-stats"><span class="author-stat" id="publicAuthorBooks">0 published books</span></div></div></div>
+        <div style="padding:0 26px 22px"><div class="author-bio" id="publicAuthorBio"></div><div class="author-links" id="publicAuthorLinks"></div></div>
+        <div class="author-books"><h3>Published books</h3><div id="publicAuthorBookGrid" class="author-book-grid"></div></div>
+        <div class="modal-actions" style="padding:0 26px 26px"><button class="btn" id="publicAuthorClose">Close</button></div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML("beforeend",authorStudioHTML);
+  const q=id=>document.getElementById(id);
+  const initial=name=>(String(name||"Author").trim().split(/\\s+/).map(x=>x[0]).join("").slice(0,2)||"A").toUpperCase();
+  let profile=null;
+
+  async function signed(path){if(!path)return"";const r=await supabaseClient.storage.from("photos").createSignedUrl(path,3600);return r.error?"":r.data?.signedUrl||""}
+  async function loadProfile(){
+    if(!state.user)return null;
+    const r=await supabaseClient.from("author_profiles").select("user_id,display_name,slug,bio,website,avatar_path,is_public,created_at,updated_at").eq("user_id",state.user.id).maybeSingle();
+    if(r.error){console.warn("Author profile unavailable. Run supabase-author-refactor.sql.",r.error);profile=null;return null}
+    profile=r.data;
+    if(profile)state.profileName=profile.display_name||"";
+    return profile;
+  }
+  async function ensureProfile(){
+    const p=await loadProfile();
+    if(p)return p;
+    const fallback=(state.user?.user_metadata?.display_name||state.user?.user_metadata?.full_name||state.user?.email?.split("@")[0]||"Author").slice(0,80);
+    const slug="author-"+state.user.id.replace(/-/g,"").slice(0,12);
+    const r=await supabaseClient.from("author_profiles").insert({user_id:state.user.id,display_name:fallback,slug,is_public:true}).select().single();
+    if(r.error)throw r.error;
+    profile=r.data;state.profileName=fallback;return profile;
+  }
+  async function renderStudioBooks(){
+    const grid=q("authorStudioBookGrid");if(!grid)return;grid.innerHTML="";
+    const books=state.books||[];
+    if(!books.length){grid.innerHTML='<div class="discover-empty">No books yet.</div>';return}
+    for(const b of books){
+      const tile=document.createElement("button");tile.className="author-book-mini";tile.type="button";
+      const cover=document.createElement("div");
+      if(b.cover_path){const img=document.createElement("img");cover.appendChild(img);signed(b.cover_path).then(u=>{if(u)img.src=u})}
+      else{cover.className="empty-cover";cover.textContent="B"}
+      const n=document.createElement("strong");n.textContent=b.title||"Untitled";const m=document.createElement("small");m.textContent=b.is_public?"Published":"Private";
+      tile.append(cover,n,m);tile.onclick=async()=>{closeStudio();await selectBook(b.id)};grid.appendChild(tile)
+    }
+  }
+  async function openStudio(){
+    if(!state.user){openAuth("login");return}
+    try{
+      await ensureProfile();await loadBooks();
+      const p=profile||{};
+      q("authorEmail").value=state.user.email||"";
+      q("authorName").value=p.display_name||"";
+      q("authorSlug").value=p.slug||"";
+      q("authorBio").value=p.bio||"";
+      q("authorWebsite").value=p.website||"";
+      q("authorPublicToggle").dataset.value=String(p.is_public!==false);
+      q("authorPublicToggle").classList.toggle("active",p.is_public!==false);
+      q("authorStudioTitle").textContent=p.display_name||"Your author profile";
+      q("authorStudioSlug").textContent="@"+(p.slug||"author");
+      q("authorStudioBooks").textContent=state.books.length+" "+(state.books.length===1?"book":"books");
+      q("authorStudioPublished").textContent=state.books.filter(b=>b.is_public).length+" published";
+      const av=q("authorStudioAvatar");av.innerHTML=initial(p.display_name);
+      if(p.avatar_path){const u=await signed(p.avatar_path);if(u){av.innerHTML="";const img=document.createElement("img");img.src=u;img.alt="";av.appendChild(img)}}
+      q("authorStudioStatus").textContent="Your author identity is separate from your login email.";
+      await renderStudioBooks();q("authorStudioModal").classList.remove("hidden")
+    }catch(e){console.error(e);toast(e.message||"Could not open Author Studio.")}
+  }
+  function closeStudio(){q("authorStudioModal").classList.add("hidden")}
+  async function saveStudio(){
+    if(!state.user)return;
+    const name=q("authorName").value.trim().slice(0,80)||"Author";
+    const slug=(q("authorSlug").value.trim().toLowerCase().replace(/[^a-z0-9-]+/g,"-").replace(/^-+|-+$/g,"").slice(0,60)||("author-"+state.user.id.replace(/-/g,"").slice(0,12)));
+    const bio=q("authorBio").value.trim().slice(0,800),website=q("authorWebsite").value.trim().slice(0,240);
+    const isPublic=q("authorPublicToggle").dataset.value!=="false";
+    q("authorStudioStatus").textContent="Saving…";
+    try{
+      let avatarPath=profile?.avatar_path||null;const file=q("authorAvatarInput").files[0];
+      if(file){const ext=extensionFor(file);avatarPath=state.user.id+"/author/avatar."+ext;const up=await supabaseClient.storage.from("photos").upload(avatarPath,file,{upsert:true,contentType:file.type||"image/jpeg",cacheControl:"31536000"});if(up.error)throw up.error}
+      const r=await supabaseClient.from("author_profiles").upsert({user_id:state.user.id,display_name:name,slug,bio,website,avatar_path:avatarPath,is_public:isPublic,updated_at:new Date().toISOString()},{onConflict:"user_id"}).select().single();
+      if(r.error)throw r.error;profile=r.data;state.profileName=name;
+      for(const b of state.books||[]){b.author=name;b.author_id=state.user.id;await supabaseClient.from("books").update({author:name,author_id:state.user.id}).eq("id",b.id).eq("user_id",state.user.id)}
+      q("authorStudioStatus").textContent="Profile saved.";q("authorStudioTitle").textContent=name;q("authorStudioSlug").textContent="@"+slug;toast("Author profile saved.");renderBookLibrary();await loadPublicBooks(q("publicSearch").value);await renderStudioBooks()
+    }catch(e){console.error(e);q("authorStudioStatus").textContent=e.message||"Could not save profile.";toast(e.message||"Could not save profile.")}
+  }
+  async function openPublicAuthor(userId){
+    try{
+      const p=await supabaseClient.from("author_profiles").select("user_id,display_name,slug,bio,website,avatar_path,is_public").eq("user_id",userId).eq("is_public",true).single();if(p.error)throw p.error;
+      const b=await supabaseClient.from("books").select("id,user_id,title,cover_path,created_at,is_public,author,description,author_id").eq("author_id",userId).eq("is_public",true).order("created_at",{ascending:false});if(b.error)throw b.error;
+      q("publicAuthorTitle").textContent=p.data.display_name||"Author";q("publicAuthorSlug").textContent="@"+(p.data.slug||"author");q("publicAuthorBio").textContent=p.data.bio||"";q("publicAuthorBooks").textContent=(b.data||[]).length+" published "+((b.data||[]).length===1?"book":"books");
+      q("publicAuthorLinks").innerHTML="";if(p.data.website){const a=document.createElement("a");a.href=p.data.website;a.target="_blank";a.rel="noopener";a.textContent="Website";q("publicAuthorLinks").appendChild(a)}
+      const av=q("publicAuthorAvatar");av.innerHTML=initial(p.data.display_name);if(p.data.avatar_path){const u=await signed(p.data.avatar_path);if(u){av.innerHTML="";const img=document.createElement("img");img.src=u;av.appendChild(img)}}
+      const grid=q("publicAuthorBookGrid");grid.innerHTML="";for(const book of b.data||[]){const t=document.createElement("button");t.className="author-book-mini";t.type="button";const c=document.createElement("div");if(book.cover_path){const i=document.createElement("img");c.appendChild(i);signed(book.cover_path).then(u=>{if(u)i.src=u})}else{c.className="empty-cover";c.textContent="B"}const n=document.createElement("strong");n.textContent=book.title||"Untitled";const m=document.createElement("small");m.textContent="Published";t.append(c,n,m);t.onclick=()=>{closePublicAuthor();openPublicBook(book.id)};grid.appendChild(t)}
+      q("publicAuthorModal").classList.remove("hidden")
+    }catch(e){console.error(e);toast("This author profile is unavailable.")}
+  }
+  function closePublicAuthor(){q("publicAuthorModal").classList.add("hidden")}
+
+  q("profileButton").addEventListener("click",e=>{e.preventDefault();e.stopImmediatePropagation();openStudio()},true);
+  q("authorStudioClose").onclick=closeStudio;q("authorStudioLogout").onclick=async()=>{await logout();closeStudio()};
+  q("authorStudioSave").onclick=saveStudio;q("authorStudioModal").onclick=e=>{if(e.target===q("authorStudioModal"))closeStudio()};
+  q("authorAvatarChoose").onclick=()=>q("authorAvatarInput").click();
+  q("authorAvatarRemove").onclick=()=>{if(profile)profile.avatar_path=null;q("authorAvatarInput").value="";q("authorStudioStatus").textContent="Avatar will be removed when you save."};
+  q("authorPublicToggle").onclick=()=>{const b=q("authorPublicToggle"),n=b.dataset.value!=="true";b.dataset.value=String(n);b.classList.toggle("active",n)};
+  q("authorName").oninput=()=>{q("authorStudioTitle").textContent=q("authorName").value||"Your author profile"};
+  q("authorSlug").oninput=()=>{q("authorStudioSlug").textContent="@"+(q("authorSlug").value||"author")};
+  q("publicAuthorClose").onclick=closePublicAuthor;q("publicAuthorModal").onclick=e=>{if(e.target===q("publicAuthorModal"))closePublicAuthor()};
+
+  /* Make the existing book cards point at the new author identity without
+     replacing the rest of the public-library renderer. */
+  const publicLibrary=q("publicLibrary");
+  const wirePublicAuthors=()=>{
+    publicLibrary.querySelectorAll(".public-card").forEach(card=>{
+      const el=card.querySelector(".public-card-author");if(!el||el.dataset.authorWired)return;
+      el.dataset.authorWired="1";const label=el.textContent.trim();el.innerHTML="";
+      const btn=document.createElement("button");btn.className="author-link";btn.type="button";btn.textContent=label||"Author";
+      btn.onclick=async()=>{const r=await supabaseClient.from("author_profiles").select("user_id").eq("display_name",label).eq("is_public",true).limit(1).maybeSingle();if(r.data)openPublicAuthor(r.data.user_id);else toast("This author has not published a public profile.")};el.appendChild(btn)
+    })
+  };
+  new MutationObserver(wirePublicAuthors).observe(publicLibrary,{childList:true,subtree:true});
+  setInterval(()=>{if(state.user&&!profile)loadProfile().catch(()=>{})},4000);
+  q("authorStudioModal").addEventListener("keydown",e=>{if(e.key==="Escape")closeStudio()});
+})();
+
+</script>
 <script>if(!window.supabase){document.write('<script src="https://unpkg.com/@supabase/supabase-js@2.117.1"><\/script>');}</script>
 <script>
   /*
