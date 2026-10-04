@@ -308,3 +308,24 @@ with check (
   and exists (select 1 from public.books b where b.id = book_id and b.user_id = (select auth.uid()))
   and exists (select 1 from public.photos p where p.id = photo_id and p.book_id = book_id and p.user_id = (select auth.uid()))
 );
+
+
+-- V3.0: cross-device reading progress
+create table if not exists public.reading_progress (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  book_id uuid not null references public.books(id) on delete cascade,
+  page_index integer not null default 0 check (page_index >= 0),
+  updated_at timestamptz not null default now(),
+  primary key (user_id, book_id)
+);
+alter table public.reading_progress enable row level security;
+grant select, insert, update, delete on public.reading_progress to authenticated;
+drop policy if exists "Users can manage their own reading progress" on public.reading_progress;
+create policy "Users can manage their own reading progress"
+on public.reading_progress for all to authenticated
+using ((select auth.uid()) = user_id)
+with check (
+  (select auth.uid()) = user_id
+  and exists (select 1 from public.books b where b.id = book_id and b.user_id = (select auth.uid()))
+);
+create index if not exists reading_progress_updated_idx on public.reading_progress(user_id, updated_at desc);
