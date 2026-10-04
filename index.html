@@ -261,25 +261,6 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
 </div>
 
 <div id="photoDetailsModal" class="modal-backdrop hidden"><div class="modal"><h2>Photo details</h2><div class="field"><label>File</label><input id="photoDetailsFilename" readonly></div><div class="field"><label>Book</label><input id="photoDetailsBook" readonly></div><div class="field"><label for="photoDetailsChapter">Chapter</label><select id="photoDetailsChapter" class="photo-details-chapter"></select></div><div class="field"><label>Caption</label><input id="photoDetailsCaption" maxlength="500"></div><div id="photoDetailsMeta" class="auth-message"></div><div class="modal-actions"><button class="btn" id="photoDetailsClose">Close</button><button class="btn" id="photoDetailsDownload">Download</button><button class="btn danger" id="photoDetailsDelete">Delete photo</button><button class="btn primary" id="photoDetailsSave">Save changes</button></div></div></div>
-<div id="authModal" class="modal-backdrop hidden">
-  <div class="modal">
-    <h2 id="authTitle">Log in</h2>
-    <p id="authDescription">Use your account to access the same book from your phone, Mac, tablet, or another computer.</p>
-    <div class="field"><label for="emailInput">Email</label><input id="emailInput" type="email" autocomplete="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="you@example.com"></div>
-    <div class="field"><label for="passwordInput">Password</label><div class="password-wrap"><input id="passwordInput" type="password" autocomplete="current-password" minlength="6" placeholder="At least 6 characters"><button class="password-toggle" id="passwordToggle" type="button" aria-label="Show password">Show</button></div></div>
-    <div class="modal-actions">
-      <button class="btn" id="authCancel" type="button">Cancel</button>
-      <button class="btn primary" id="authSubmit" type="button">Log in</button>
-    </div>
-    <div id="authMessage" class="auth-message" role="status" aria-live="polite"></div>
-    <div class="auth-divider">or</div>
-    <button class="btn auth-provider" id="googleButton" type="button">Continue with Google</button>
-    <button class="auth-link" id="forgotPassword" type="button">Forgot your password?</button>
-    <button class="auth-link hidden" id="resendConfirmation" type="button">Resend confirmation email</button>
-    <button class="btn" id="authSwitch" type="button" style="width:100%;margin-top:4px">Create an account instead</button>
-  </div>
-</div>
-
 <div id="favoritesModal" class="modal-backdrop hidden"><div class="modal" style="width:min(820px,100%)"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px"><div><h2 style="margin:0">Saved</h2><p style="margin:5px 0 0">Your favorite books and bookmarked pages, all in one place.</p></div><button class="btn icon" id="favoritesClose" type="button" aria-label="Close">×</button></div><div class="toolbar-group" style="width:max-content;margin-bottom:14px"><button class="btn" id="savedFavoritesTab" type="button">♥ Favorites</button><button class="btn" id="savedBookmarksTab" type="button">🔖 Bookmarks</button></div><section id="savedFavoritesPanel"><div id="favoritesLibrary" class="book-library"></div></section><section id="savedBookmarksPanel" class="hidden"><div id="savedBookmarkList" class="bookmark-list"></div></section></div></div>
 
 <div id="libraryModal" class="modal-backdrop hidden">
