@@ -128,6 +128,10 @@
       .upload-zone{padding:34px 18px}.book-grid{gap:48px}.photo-frame{border-radius:10px}.photo-actions{opacity:1}
     }
   body.light{--bg:#f5f5f7;--surface:#fff;--surface2:#ececef;--line:#d8d8de;--text:#151517;--muted:#666671;--accent:#111}.light .topbar{background:rgba(245,245,247,.84)}.light .btn{background:#fff;color:#151517;border-color:#d8d8de}.light .btn.primary{background:#151517;color:#fff}.toolbar-group{display:flex;align-items:center;gap:6px;padding:4px;border:1px solid var(--line);border-radius:14px;background:rgba(127,127,127,.05)}.toolbar-group .btn{border:0;background:transparent;border-radius:10px;padding:8px 10px}.toolbar-group .btn:hover{background:var(--surface2)}.book-menu{position:relative}.book-menu-panel{position:absolute;right:0;top:48px;width:250px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:8px;box-shadow:0 20px 70px rgba(0,0,0,.3);z-index:35}.menu-item{display:flex;align-items:center;justify-content:space-between;width:100%;border:0;background:transparent;color:var(--text);padding:11px 12px;border-radius:10px;text-align:left}.menu-item:hover{background:var(--surface2)}.menu-item.danger{color:var(--danger)}.reader-tools{display:flex;align-items:center;gap:7px}.reader-bookmark.active{background:#ffcc00;color:#111;border-color:#ffcc00}.page-turn{perspective:1800px}.page-turn .reader-sheet{animation:pageInRight .38s cubic-bezier(.2,.7,.2,1)}.page-turn.left .reader-sheet{animation-name:pageInLeft}@keyframes pageInRight{0%{opacity:.35;transform:rotateY(-72deg) translateX(28px);transform-origin:left center}100%{opacity:1;transform:rotateY(0) translateX(0);transform-origin:left center}}@keyframes pageInLeft{0%{opacity:.35;transform:rotateY(72deg) translateX(-28px);transform-origin:right center}100%{opacity:1;transform:rotateY(0) translateX(0);transform-origin:right center}}.bookmark-list{display:grid;gap:8px}.bookmark-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);padding:10px;border-radius:12px;background:var(--surface)}.library-actions{display:flex;gap:6px;margin-top:9px}.library-actions .btn{flex:1;padding:8px 10px;font-size:12px}@media(max-width:900px){.topbar{height:auto;min-height:68px;padding:10px 14px;gap:10px}.brand{flex:1}.actions{flex-wrap:wrap;justify-content:flex-end}.account{display:none}}@media(max-width:650px){.actions{max-width:62%;gap:4px}.toolbar-group{gap:2px}.toolbar-group .btn{font-size:0;width:38px;height:38px;padding:0;display:grid;place-items:center}.toolbar-group .btn::first-letter{font-size:16px}.book-menu-panel{right:-40px}}
+/* V3.1 in-page book editor */
+.book-workspace{margin:30px 0 90px}.workspace-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:10px 0 26px}.workspace-intro h1{margin:4px 0 8px;font-size:clamp(34px,5vw,58px);letter-spacing:-2.4px;line-height:1.02}.workspace-intro h1:focus{outline:3px solid rgba(255,255,255,.22);outline-offset:7px;border-radius:10px}.workspace-intro p{margin:0;color:var(--muted);font-size:15px}.workspace-primary-actions{display:flex;gap:8px;flex-wrap:wrap}.workspace-grid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:18px;align-items:start}.book-settings-card,.editor-card{border:1px solid var(--line);background:var(--surface);border-radius:24px;box-shadow:var(--shadow-soft)}.book-settings-card{position:sticky;top:88px;padding:14px}.settings-cover{min-height:260px;border-radius:17px;overflow:hidden;background:var(--surface-2);display:flex;align-items:center;justify-content:center}.settings-cover img,.settings-cover .cover{width:100%;height:100%;max-height:340px;object-fit:cover;margin:0;border-radius:0}.settings-cover .cover-empty{width:100%;height:260px;margin:0;border:0;border-radius:0;display:grid;place-items:center;background:linear-gradient(145deg,var(--surface-2),var(--surface-3))}.settings-cover-actions{display:grid;grid-template-columns:1fr;margin-top:10px}.setting-status{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px;padding:13px 3px 8px}.publish-action{width:100%;border-radius:12px;margin-top:4px}.full-action{width:100%;border-radius:12px;margin-top:8px}.workspace-content{display:grid;gap:18px;min-width:0}.editor-card{padding:22px}.card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:20px}.card-heading h2{margin:3px 0 5px;font-size:21px;letter-spacing:-.5px}.card-heading p{margin:0;color:var(--muted);font-size:13px;line-height:1.5;max-width:620px}.eyebrow{text-transform:uppercase;letter-spacing:.1em;font-size:10px;font-weight:850;color:var(--muted)}.save-state{font-size:11px;color:var(--success);padding-top:4px;white-space:nowrap}.details-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.editor-field{display:block;min-width:0}.editor-field span{display:block;font-size:11px;font-weight:750;color:var(--muted);margin:0 0 7px}.editor-field input,.editor-field textarea,.editor-field select{width:100%;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:13px;padding:12px 13px;outline:none;resize:vertical}.editor-field input:focus,.editor-field textarea:focus,.editor-field select:focus{border-color:#777;box-shadow:0 0 0 3px rgba(127,127,127,.12)}.editor-field.full{grid-column:1/-1}.editor-field.compact{width:min(360px,100%)}.editor-actions{display:flex;justify-content:flex-end;margin-top:14px}.chapter-filter-row{display:flex;align-items:end;justify-content:space-between;gap:14px;padding:12px;border:1px solid var(--line);background:var(--surface-2);border-radius:16px;margin-bottom:12px}.chapter-summary{font-size:12px;color:var(--muted);text-align:right}.chapter-manager-list{max-height:none;overflow:visible;margin-top:0}.chapter-row{grid-template-columns:auto minmax(0,1fr) auto}.chapter-row-actions .btn{min-width:40px}.chapter-add{margin-top:12px}.chapter-add input{background:var(--surface-2)}.pages-heading{margin-bottom:14px}.pages-heading-actions{display:flex;align-items:center}.inpage-upload{display:flex;align-items:center;gap:15px;text-align:left;padding:18px 20px;border-radius:16px;margin-bottom:14px}.inpage-upload .upload-icon{margin:0;width:42px;height:42px;border-radius:12px;flex:none}.inpage-upload h3{margin:0;font-size:14px}.inpage-upload p{margin:4px 0 0;color:var(--muted);font-size:12px}.inpage-upload #chooseButtonSecondary{margin-left:auto;flex:none}.page-filter-strip{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 3px 14px;color:var(--muted);font-size:11px}.page-filter-strip span:first-child{color:var(--text);font-weight:750}
+@media(max-width:900px){.workspace-grid{grid-template-columns:1fr}.book-settings-card{position:static}.settings-cover{min-height:220px}.settings-cover .cover-empty{height:220px}}
+@media(max-width:650px){.workspace-intro{align-items:stretch;flex-direction:column}.workspace-primary-actions{display:grid;grid-template-columns:1fr 1fr}.workspace-primary-actions .btn{width:100%}.editor-card{padding:16px;border-radius:18px}.details-form-grid{grid-template-columns:1fr}.editor-field.full{grid-column:auto}.chapter-filter-row{align-items:stretch;flex-direction:column}.chapter-summary{text-align:left}.inpage-upload{align-items:flex-start;flex-wrap:wrap}.inpage-upload #chooseButtonSecondary{margin-left:57px}.pages-heading{align-items:flex-start}.pages-heading-actions{width:100%}.pages-heading-actions .btn{width:100%}.settings-cover{min-height:190px}}
 /* V3 UI overhaul */
 :root{--bg:#0d0e10;--surface:#15171a;--surface-2:#1c1e22;--surface-3:#25282d;--line:#30343a;--text:#f4f2ed;--muted:#a7a49d;--accent:#f4f2ed;--accent-soft:#2a2925;--success:#70c79c;--danger:#ff6f65;--shadow:0 18px 55px rgba(0,0,0,.28);--shadow-soft:0 8px 28px rgba(0,0,0,.22);--radius:20px;--sidebar:264px}
 .light{--bg:#f5f3ee;--surface:#fffdf8;--surface-2:#f0ede5;--surface-3:#e8e3d8;--line:#ded8cc;--text:#24221e;--muted:#777168;--accent:#24221e;--accent-soft:#e7e0d2;--success:#2f7d5a;--danger:#b83a32;--shadow:0 18px 55px rgba(57,47,33,.10);--shadow-soft:0 8px 28px rgba(57,47,33,.07)}
@@ -192,25 +196,51 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
 <body>
 <div class="app">
 <header class="topbar"><div class="brand"><div class="brand-mark">B</div><div class="book-switcher"><select id="bookSelect" aria-label="Select current book"></select><button class="btn icon" id="newBookButton" title="Create a new book" aria-label="Create a new book">＋</button></div><div><div class="brand-title">Digital Book</div><div class="brand-meta" id="syncStatus"><span class="status-dot"></span>Cloud synced</div></div></div>
-<div class="actions"><div class="account" id="accountEmail"></div><div class="toolbar-group"><button class="btn" id="profileButton" title="Profile">👤 Profile</button><button class="btn" id="authButton" title="Log in or log out">Log in</button></div><div class="toolbar-group" aria-label="Navigation"><button class="btn" id="discoverButton" title="Discover books">⌕</button><button class="btn" id="libraryButton" title="My Library">▦</button><button class="btn" id="favoritesButton" title="Favorite books">♥</button><button class="btn" id="bookmarksButton" title="Saved bookmarks">🔖</button><button class="btn" id="readButton" title="Read current book">📖</button></div><div class="toolbar-group"><div class="book-menu"><button class="btn" id="bookMenuButton" aria-haspopup="menu">Book ▾</button><div id="bookMenuPanel" class="book-menu-panel hidden"><button class="menu-item" id="editBookButton">✎ <span>Edit title & details</span></button><button class="menu-item" id="coverButton">▣ <span>Add / change cover</span></button><button class="menu-item" id="visibilityButton">◉ <span>Publish</span></button><button class="menu-item danger" id="deleteBookButton">⌫ <span>Delete this book</span></button></div></div><button class="btn" id="themeButton" title="Light / dark mode">☼ <span>Theme</span></button></div><button class="btn primary" id="headerUpload">＋ Add pages</button><input id="coverInput" type="file" accept="image/*" class="hidden"></div></header>
+<div class="actions"><div class="account" id="accountEmail"></div><div class="toolbar-group"><button class="btn" id="profileButton" title="Profile">👤 Profile</button><button class="btn" id="authButton" title="Log in or log out">Log in</button></div><div class="toolbar-group" aria-label="Navigation"><button class="btn" id="discoverButton" title="Discover books">⌕</button><button class="btn" id="libraryButton" title="My Library">▦</button><button class="btn" id="favoritesButton" title="Favorite books">♥</button><button class="btn" id="bookmarksButton" title="Saved bookmarks">🔖</button><button class="btn" id="readButton" title="Read current book">📖</button></div><div class="toolbar-group"><button class="btn" id="themeButton" title="Light / dark mode">☼ <span>Theme</span></button></div></div></header>
 <main>
 <section class="discover" id="discoverSection"><div class="discover-head"><div><div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:800;margin-bottom:10px">Discover</div><h1 class="discover-title">Find your next useful book.</h1><p class="discover-subtitle">Explore books shared by the community. Search by title, author, or description, then open anything that looks useful.</p></div><div class="search-wrap"><span class="search-icon">⌕</span><input id="publicSearch" type="search" placeholder="Search books, authors, topics…" autocomplete="off" aria-label="Search public books"></div></div><div style="display:flex;justify-content:flex-end;margin:-8px 0 16px"><select id="publicSort" class="btn" aria-label="Sort discovered books"><option value="recent">Newest first</option><option value="title">Title A–Z</option><option value="author">Author A–Z</option></select></div><div id="publicLibrary" class="public-grid"></div></section>
-<section class="hero"><div id="coverArea"></div><div><div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:800;margin-bottom:9px">Your current book</div><h1 id="bookTitle" contenteditable="true" spellcheck="false" aria-label="Book title">My Book</h1><p id="countText">Your pages, organized into chapters.</p><div class="chapter-controls"><div class="chapter-select-wrap"><span class="chapter-select-label">Chapter</span><select id="sectionSelect" aria-label="Filter by chapter"></select></div><button class="btn" id="newSectionButton">＋ Chapter</button><button class="btn" id="manageSectionsButton">Manage chapters</button><button class="btn" id="bookDetailsButton">Details</button></div></div></section>
-<section class="upload-zone" id="dropZone"><div class="upload-icon">＋</div><div><h2>Add pages to your book</h2><p>Drop images here or choose multiple files. New pages are appended in order.</p></div><button class="btn primary" id="chooseButton">Choose pages</button><input id="fileInput" type="file" accept="image/*" multiple class="hidden"></section>
-<section class="book"><div id="loading" class="loading hidden"><div class="spinner"></div>Loading your book…</div><div id="empty" class="empty hidden"><h2>Your book is empty.</h2><p>Add your first pages above. You can reorder, caption, assign chapters, download, or delete them anytime.</p></div><div id="bookGrid" class="book-grid"></div></section>
-</main></div>
-
-<div id="bookEditModal" class="modal-backdrop hidden"><div class="modal"><h2>Edit book</h2><p>Change the title, author, and description in one place.</p><div class="field"><label for="editBookTitle">Book name</label><input id="editBookTitle" maxlength="120"></div><div class="field"><label for="editBookAuthor">Author / creator</label><input id="editBookAuthor" maxlength="160"></div><div class="field"><label for="editBookDescription">Description</label><input id="editBookDescription" maxlength="1000"></div><div class="modal-actions"><button class="btn" id="bookEditCancel">Cancel</button><button class="btn primary" id="bookEditSave">Save</button></div></div></div><div id="profileModal" class="modal-backdrop hidden"><div class="modal"><h2>Profile</h2><p>Your account information and session controls.</p><div class="field"><label for="profileEmail">Email</label><input id="profileEmail" type="email" readonly></div><div class="field"><label for="profileName">Display name</label><input id="profileName" maxlength="80" placeholder="Your name"></div><div id="profileStatus" class="auth-message" role="status"></div><div class="modal-actions"><button class="btn" id="profileCancel">Close</button><button class="btn" id="profileLogout">Log out</button><button class="btn primary" id="profileSave">Save</button></div></div></div>
-<div id="chapterManagerModal" class="modal-backdrop hidden"><div class="modal" style="width:min(720px,100%)">
-  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-    <div><h2 style="margin:0">Manage chapters</h2><p style="margin:5px 0 0">Rename, reorder, or remove chapters. Removing a chapter keeps its pages and moves them to Unassigned.</p></div>
-    <button class="btn icon" id="chapterManagerClose" type="button" aria-label="Close">×</button>
+<section class="book-workspace" id="bookWorkspace">
+  <div class="workspace-intro">
+    <div><div class="eyebrow">Book workspace</div><h1 id="bookTitle" contenteditable="true" spellcheck="false" aria-label="Book title">My Book</h1><p id="countText">Your pages, organized into chapters.</p></div>
+    <div class="workspace-primary-actions"><button class="btn primary" id="readButtonInline" type="button">📖 Read book</button><button class="btn" id="bookDetailsButton" type="button">✎ Edit details</button></div>
   </div>
-  <div id="chapterManagerList" class="chapter-manager-list"></div>
-  <div class="chapter-add"><input id="chapterNameInput" maxlength="120" placeholder="New chapter name…"><button class="btn primary" id="chapterAddButton" type="button">Add chapter</button></div>
-  <div class="modal-actions"><button class="btn" id="chapterManagerDone" type="button">Done</button></div>
-</div></div>
-<div id="photoDetailsModal" class="modal-backdrop hidden"><div class="modal"><h2>Photo details</h2><div class="field"><label>File</label><input id="photoDetailsFilename" readonly></div><div class="field"><label>Book</label><input id="photoDetailsBook" readonly></div><div class="field"><label for="photoDetailsChapter">Chapter</label><select id="photoDetailsChapter" class="photo-details-chapter"></select></div><div class="field"><label>Caption</label><input id="photoDetailsCaption" maxlength="500"></div><div id="photoDetailsMeta" class="auth-message"></div><div class="modal-actions"><button class="btn" id="photoDetailsClose">Close</button><button class="btn" id="photoDetailsDownload">Download</button><button class="btn danger" id="photoDetailsDelete">Delete photo</button><button class="btn primary" id="photoDetailsSave">Save changes</button></div></div></div>
+  <div class="workspace-grid">
+    <aside class="book-settings-card">
+      <div class="settings-cover" id="coverArea"></div>
+      <div class="settings-cover-actions"><button class="btn" id="coverButton" type="button">▣ Change cover</button><input id="coverInput" type="file" accept="image/*" class="hidden"></div>
+      <div class="setting-status"><span class="status-dot"></span><span id="bookPublishStatusText">Private book</span></div>
+      <button class="btn publish-action" id="visibilityButton" type="button">Publish book</button>
+      <button class="btn danger full-action" id="deleteBookButton" type="button">⌫ Delete book</button>
+    </aside>
+    <div class="workspace-content">
+      <section class="editor-card book-details-card">
+        <div class="card-heading"><div><div class="eyebrow">Identity</div><h2>Book details</h2><p>Give your book a clear identity so it is easy to manage and discover.</p></div><span class="save-state" id="bookDetailsStatus" role="status">Saved</span></div>
+        <div class="details-form-grid">
+          <label class="editor-field"><span>Book name</span><input id="editBookTitleInline" maxlength="120" autocomplete="off"></label>
+          <label class="editor-field"><span>Author / creator</span><input id="editBookAuthorInline" maxlength="160" autocomplete="name" placeholder="Optional"></label>
+          <label class="editor-field full"><span>Description</span><textarea id="editBookDescriptionInline" maxlength="1000" rows="4" placeholder="What is this book about?"></textarea></label>
+        </div>
+        <div class="editor-actions"><button class="btn primary" id="saveBookDetailsInline" type="button">Save details</button></div>
+      </section>
+      <section class="editor-card chapters-card">
+        <div class="card-heading"><div><div class="eyebrow">Structure</div><h2>Chapters</h2><p>Build the order of your book, then assign pages directly to chapters.</p></div><button class="btn primary" id="newSectionButton" type="button">＋ New chapter</button></div>
+        <div class="chapter-filter-row"><label class="editor-field compact"><span>Viewing</span><select id="sectionSelect" aria-label="Filter by chapter"></select></label><div class="chapter-summary" id="chapterSummary">Manage chapters below.</div></div>
+        <div id="chapterManagerList" class="chapter-manager-list"></div>
+        <div class="chapter-add"><input id="chapterNameInput" maxlength="120" placeholder="New chapter name…" aria-label="New chapter name"><button class="btn primary" id="chapterAddButton" type="button">Add chapter</button></div>
+      </section>
+      <section class="editor-card pages-card" id="pagesEditor">
+        <div class="card-heading pages-heading"><div><div class="eyebrow">Pages</div><h2>Build your book</h2><p>Upload pages, then drag to reorder or use each page's tools to edit it.</p></div><div class="pages-heading-actions"><button class="btn primary" id="chooseButton" type="button">＋ Add pages</button><input id="fileInput" type="file" accept="image/*" multiple class="hidden"></div></div>
+        <div class="upload-zone inpage-upload" id="dropZone"><div class="upload-icon">＋</div><div><h3>Drop pages here</h3><p>Images are appended in the book's real page order. You can assign chapters after upload.</p></div><button class="btn" id="chooseButtonSecondary" type="button">Choose images</button></div>
+        <div class="page-filter-strip"><span id="pageFilterLabel">All chapters</span><span id="pageFilterHint">Showing every page</span></div>
+        <div id="loading" class="loading hidden"><div class="spinner"></div>Loading your book…</div>
+        <div id="empty" class="empty hidden"><h2>Your book is empty.</h2><p>Add your first pages above. You can reorder, caption, assign chapters, download, or delete them anytime.</p></div>
+        <div id="bookGrid" class="book-grid"></div>
+      </section>
+    </div>
+  </div>
+</section></main></div>
+
+<div id="bookEditModal" aria-hidden="true" style="display:none!important" class="modal-backdrop hidden"><div class="modal"><h2>Edit book</h2><p>Change the title, author, and description in one place.</p><div class="field"><label for="editBookTitle">Book name</label><input id="editBookTitle" maxlength="120"></div><div class="field"><label for="editBookAuthor">Author / creator</label><input id="editBookAuthor" maxlength="160"></div><div class="field"><label for="editBookDescription">Description</label><input id="editBookDescription" maxlength="1000"></div><div class="modal-actions"><button class="btn" id="bookEditCancel">Cancel</button><button class="btn primary" id="bookEditSave">Save</button></div></div></div><div id="profileModal" class="modal-backdrop hidden"><div class="modal"><h2>Profile</h2><p>Your account information and session controls.</p><div class="field"><label for="profileEmail">Email</label><input id="profileEmail" type="email" readonly></div><div class="field"><label for="profileName">Display name</label><input id="profileName" maxlength="80" placeholder="Your name"></div><div id="profileStatus" class="auth-message" role="status"></div><div class="modal-actions"><button class="btn" id="profileCancel">Close</button><button class="btn" id="profileLogout">Log out</button><button class="btn primary" id="profileSave">Save</button></div></div></div>
 <div id="authModal" class="modal-backdrop hidden">
   <div class="modal">
     <h2 id="authTitle">Log in</h2>
@@ -367,6 +397,13 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
 
   function updateBookTitle() {
     $("bookTitle").textContent = state.bookTitle || "My Book";
+    const book=state.books?.find(b=>b.id===state.currentBookId);
+    if(book){
+      if($("editBookTitleInline"))$("editBookTitleInline").value=book.title||"";
+      if($("editBookAuthorInline"))$("editBookAuthorInline").value=book.author||"";
+      if($("editBookDescriptionInline"))$("editBookDescriptionInline").value=book.description||"";
+      updateVisibilityButton();
+    }
   }
 
   async function saveBookTitle() {
@@ -639,35 +676,38 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
   }
 
   function updateVisibilityButton(){
-    const book=state.books.find(b=>b.id===state.currentBookId);
-    const btn=$("visibilityButton");
-    if(!btn)return;
-    btn.textContent=book?.is_public?"Unpublish":"Publish";
-    btn.className="btn "+(book?.is_public?"visibility-public":"");
-    btn.title=book?.is_public?"Remove this book from the public library":"Publish this book so anyone can discover and read it";
+    const book=state.books.find(b=>b.id===state.currentBookId);if(!book)return;
+    const btn=$("visibilityButton"),status=$("bookPublishStatusText");
+    if(btn){btn.textContent=book.is_public?"Unpublish book":"Publish book";btn.className="btn publish-action "+(book.is_public?"visibility-public":"");btn.title=book.is_public?"Remove this book from the public library":"Publish this book so anyone can discover and read it"}
+    if(status)status.textContent=book.is_public?"Published to Public Library":"Private book";
   }
 
-  async function editBookDetails(){
+  function editBookDetails(){
+    if(!state.user||!state.currentBookId){openAuth("login");return}
+    const book=state.books.find(b=>b.id===state.currentBookId);if(!book)return;
+    $("editBookTitleInline").value=book.title||"";
+    $("editBookAuthorInline").value=book.author||"";
+    $("editBookDescriptionInline").value=book.description||"";
+    $("bookDetailsStatus").textContent="Ready to edit";
+    $("editBookTitleInline").scrollIntoView({behavior:"smooth",block:"center"});
+    setTimeout(()=>$("editBookTitleInline").focus(),180);
+  }
+  async function saveBookDetails(){
     if(!state.user||!state.currentBookId)return;
-    if (!state.publicSchemaReady) {
-      toast("Book details need the latest Supabase schema. Run supabase-repair.sql once.");
-      return;
-    }
-    const book=state.books.find(b=>b.id===state.currentBookId);
-    if(!book)return;
-    const author=prompt("Author / creator name:",book.author||"");
-    if(author===null)return;
-    const description=prompt("Short description:",book.description||"");
-    if(description===null)return;
-    const {error}=await supabaseClient.from("books").update({
-      author:author.trim().slice(0,160),
-      description:description.trim().slice(0,1000)
-    }).eq("id",book.id).eq("user_id",state.user.id);
-    if(error){toast(error.message);return}
-    book.author=author.trim().slice(0,160);
-    book.description=description.trim().slice(0,1000);
-    await loadPublicBooks($("publicSearch").value);
-    toast("Book details saved.");
+    if(!state.publicSchemaReady){toast("Book details need the latest Supabase schema.");return}
+    const book=state.books.find(b=>b.id===state.currentBookId);if(!book)return;
+    const title=$("editBookTitleInline").value.trim().slice(0,120)||"My Book";
+    const author=$("editBookAuthorInline").value.trim().slice(0,160);
+    const description=$("editBookDescriptionInline").value.trim().slice(0,1000);
+    $("bookDetailsStatus").textContent="Saving…";
+    try{
+      const {error}=await supabaseClient.from("books").update({title,author,description}).eq("id",book.id).eq("user_id",state.user.id);
+      if(error)throw error;
+      book.title=title;book.author=author;book.description=description;state.bookTitle=title;
+      $("bookTitle").textContent=title;$("bookDetailsStatus").textContent="Saved just now";
+      renderBookSelector();renderBookLibrary();updateVisibilityButton();
+      await loadPublicBooks($("publicSearch").value);toast("Book details saved.");
+    }catch(error){console.error(error);$("bookDetailsStatus").textContent="Could not save";toast(error.message||"Could not save book details.")}
   }
 
   async function deleteCurrentBook(){if(!state.user||!state.currentBookId)return;const book=state.books.find(b=>b.id===state.currentBookId);if(!book)return;if(!confirm("Delete “"+book.title+"”? This removes its photos and cover too."))return;try{const {data:photos,error:pe}=await supabaseClient.from("photos").select("storage_path").eq("book_id",book.id);if(pe)throw pe;const paths=(photos||[]).map(p=>p.storage_path).filter(Boolean);if(book.cover_path)paths.push(book.cover_path);if(paths.length){const sd=await supabaseClient.storage.from("photos").remove([...new Set(paths)]);if(sd.error)throw sd.error}const {error}=await supabaseClient.from("books").delete().eq("id",book.id).eq("user_id",state.user.id);if(error)throw error;state.currentBookId=null;state.currentSectionId=null;await loadBooks();await loadFavorites();await loadPhotos();toast("Book deleted")}catch(error){console.error(error);toast(error.message||"Could not delete the book")}}
@@ -709,6 +749,15 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
     if(state.currentSectionId && !state.sections.some(s=>s.id===state.currentSectionId))state.currentSectionId=null;
     renderSectionSelector();
   }
+  function updatePageFilterUi(){
+    const chapter=state.currentSectionId?state.sections.find(s=>s.id===state.currentSectionId):null;
+    if($("pageFilterLabel"))$("pageFilterLabel").textContent=chapter?chapter.name:"All chapters";
+    if($("pageFilterHint"))$("pageFilterHint").textContent=chapter?"Showing pages in this chapter":"Showing every page";
+    if($("chapterSummary")){
+      const count=chapter?(state.chapterCounts?.[chapter.id]||0):(state.photos?.length||0);
+      $("chapterSummary").textContent=chapter?count+" pages in this chapter":count+" pages across "+state.sections.length+" chapters";
+    }
+  }
   function renderSectionSelector(){
     const select=$("sectionSelect");
     if(!select)return;
@@ -725,6 +774,7 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
       select.appendChild(option);
     });
     select.value=state.currentSectionId||"";
+    updatePageFilterUi();
   }
   function renderChapterManager(){
     const list=$("chapterManagerList");
@@ -775,10 +825,10 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
   function openChapterManager(){
     if(!state.user||!state.currentBookId){openAuth("login");return}
     renderChapterManager();
-    $("chapterManagerModal").classList.remove("hidden");
-    setTimeout(()=>$("chapterNameInput").focus(),0);
+    $("chapterNameInput")?.scrollIntoView({behavior:"smooth",block:"center"});
+    setTimeout(()=>$("chapterNameInput")?.focus(),120);
   }
-  function closeChapterManager(){$("chapterManagerModal").classList.add("hidden")}
+  function closeChapterManager(){renderChapterManager()}
   async function createSection(name){
     const clean=String(name||"").trim().slice(0,120);
     if(!state.user||!state.currentBookId||!clean)return false;
@@ -1880,27 +1930,25 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
     if (state.user) await refreshPrivateState();
   }
   $("chooseButton").addEventListener("click", async () => {if(!await requireSession())return;$("fileInput").click();});
-  $("headerUpload").addEventListener("click", async () => {
-    if (!await requireSession()) return;
-    $("fileInput").click();
-  });
-
-  $("fileInput").addEventListener("change", async e => {
+    $("fileInput").addEventListener("change", async e => {
     await uploadFiles(e.target.files);
     e.target.value = "";
   });
 
   $("bookSelect").addEventListener("change",e=>selectBook(e.target.value));
   $("newBookButton").addEventListener("click",async()=>{if(!await requireSession())return;createBook()});
-  $("newSectionButton").addEventListener("click",async()=>{if(!await requireSession())return;const name=prompt("Chapter name","Chapter "+(state.sections.length+1));if(name?.trim())try{await createSection(name)}catch(error){console.error(error);toast(error.message||"Could not create the chapter.")}});
-  $("manageSectionsButton").addEventListener("click",openChapterManager);
-  $("sectionSelect").addEventListener("change",async e=>{if(!state.user)return;state.currentSectionId=e.target.value||null;await loadPhotos()});
-  $("chapterManagerClose").addEventListener("click",closeChapterManager);
-  $("chapterManagerDone").addEventListener("click",closeChapterManager);
+  $("newSectionButton").addEventListener("click",async()=>{if(!await requireSession())return;const input=$("chapterNameInput");const name=input.value.trim()||("Chapter "+(state.sections.length+1));input.value=name;try{await createSection(name);input.value="";renderChapterManager()}catch(error){console.error(error);toast(error.message||"Could not create the chapter.")}});
+  $("sectionSelect").addEventListener("change",async e=>{if(!state.user)return;state.currentSectionId=e.target.value||null;await loadPhotos();renderChapterManager();updatePageFilterUi()});
   $("chapterAddButton").addEventListener("click",addChapterFromManager);
   $("chapterNameInput").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();addChapterFromManager()}});
-  $("chapterManagerModal").addEventListener("click",e=>{if(e.target===$("chapterManagerModal"))closeChapterManager()});
-  $("bookMenuButton").addEventListener("click",()=>$("bookMenuPanel").classList.toggle("hidden"));$("themeButton").addEventListener("click",toggleTheme);$("editBookButton").addEventListener("click",()=>{$("bookMenuPanel").classList.add("hidden");editBookDetails()});$("deleteBookButton").addEventListener("click",()=>{$("bookMenuPanel").classList.add("hidden");deleteCurrentBook()});$("coverButton").addEventListener("click",async()=>{$("bookMenuPanel").classList.add("hidden");if(!await requireSession())return;$("coverInput").click()});
+  $("themeButton").addEventListener("click",toggleTheme);
+  $("bookDetailsButton").addEventListener("click",editBookDetails);
+  $("saveBookDetailsInline").addEventListener("click",saveBookDetails);
+  $("readButtonInline").addEventListener("click",openReader);
+  $("deleteBookButton").addEventListener("click",deleteCurrentBook);
+  $("visibilityButton").addEventListener("click",updateBookVisibility);
+  $("coverButton").addEventListener("click",async()=>{if(!await requireSession())return;$("coverInput").click()});
+  $("chooseButtonSecondary").addEventListener("click",()=>$("fileInput").click());
   $("coverInput").addEventListener("change",async e=>{
     const file=e.target.files[0];
     e.target.value="";
@@ -2030,8 +2078,7 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
   $("resendConfirmation").addEventListener("click", resendConfirmation);
   $("discoverButton").addEventListener("click",()=>document.getElementById("discoverSection").scrollIntoView({behavior:"smooth"}));
   $("publicSearch").addEventListener("input",()=>{clearTimeout(state.publicSearchTimer);state.publicSearchTimer=setTimeout(()=>loadPublicBooks($("publicSearch").value),250)});
-  $("visibilityButton").addEventListener("click",updateBookVisibility);
-  $("bookDetailsButton").addEventListener("click",editBookDetails);$("bookEditCancel").addEventListener("click",()=>$("bookEditModal").classList.add("hidden"));$("bookEditSave").addEventListener("click",saveBookDetails);$("readerBookmark").addEventListener("click",toggleReaderBookmark);
+  $("readerBookmark").addEventListener("click",toggleReaderBookmark);
   $("libraryButton").addEventListener("click", openLibrary);
   $("libraryClose").addEventListener("click", closeLibrary);
   $("libraryModal").addEventListener("click", e => { if(e.target === $("libraryModal")) closeLibrary(); });$("bookEditModal").addEventListener("click",e=>{if(e.target===$("bookEditModal"))$("bookEditModal").classList.add("hidden")});
