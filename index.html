@@ -336,7 +336,7 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
     publicBook: null,
     publicSections: [],
     publicPhotos: [],
-    profileName: "", detailPhotoId: null, readerMode: "private", favorites: new Set(), bookmarks: [], savedBookmarks: [], savedTab: "favorites", librarySearch: "", librarySort: "recent", publicSort: "recent", theme: localStorage.getItem("digital-book:theme") || "dark", readerDirection: 0, readerZoom: 1, readerPanX: 0, readerPanY: 0, readerPointers: new Map(), readerDrag: null, readerPinchDistance: 0
+    profileName: "", detailPhotoId: null, readerMode: "private", favorites: new Set(), bookmarks: [], savedBookmarks: [], savedTab: "favorites", librarySearch: "", librarySort: "recent", publicSort: "recent", readingProgress: new Map(), theme: localStorage.getItem("digital-book:theme") || "dark", readerDirection: 0, readerZoom: 1, readerPanX: 0, readerPanY: 0, readerPointers: new Map(), readerDrag: null, readerPinchDistance: 0
   };
 
   const $ = (id) => document.getElementById(id);
@@ -448,6 +448,26 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
     await renderCover();
     renderBookLibrary();
   }
+  async function loadReadingProgress(){
+    state.readingProgress = new Map();
+    if(!state.user) return;
+    const {data,error}=await supabaseClient.from("reading_progress")
+      .select("book_id,page_index,updated_at")
+      .eq("user_id",state.user.id);
+    if(error){console.warn("Reading progress unavailable:",error);return;}
+    for(const row of data||[]) state.readingProgress.set(row.book_id,row);
+  }
+
+  async function saveReadingProgress(){
+    if(state.readerMode!=="private" || !state.user || !state.currentBookId || !state.readerPages.length)return;
+    const pageIndex=Math.max(0,Math.min(state.readerIndex,state.readerPages.length-1));
+    state.readingProgress.set(state.currentBookId,{book_id:state.currentBookId,page_index:pageIndex,updated_at:new Date().toISOString()});
+    const {error}=await supabaseClient.from("reading_progress").upsert({
+      user_id:state.user.id,book_id:state.currentBookId,page_index:pageIndex,updated_at:new Date().toISOString()
+    },{onConflict:"user_id,book_id"});
+    if(error) console.warn("Reading progress save failed:",error);
+  }
+
   function renderBookSelector(){
     const s=$("bookSelect");
     s.innerHTML="";
@@ -479,10 +499,11 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
       if(book.cover_path){const img=document.createElement("img");img.className="book-tile-cover";img.alt=(book.title||"Book")+" cover";supabaseClient.storage.from("photos").createSignedUrl(book.cover_path,3600).then(x=>{if(!x.error)img.src=x.data.signedUrl});cover.appendChild(img)}
       else{cover.className="book-tile-empty";cover.textContent="No cover"}
       const title=document.createElement("div");title.className="book-tile-title";title.textContent=book.title||"Untitled";
-      const meta=document.createElement("div");meta.className="book-tile-meta";meta.textContent=(book.is_public?"Published":"Private")+" · "+(book.id===state.currentBookId?"Open":"Saved");
+      const progress=state.readingProgress.get(book.id); const pageCount=progress ? ((progress.page_index||0)+1) : 0;
+      const meta=document.createElement("div");meta.className="book-tile-meta";meta.textContent=progress ? "Continue on page "+pageCount+" · "+(book.is_public?"Published":"Private") : (book.is_public?"Published":"Private")+" · "+(book.id===state.currentBookId?"Open":"Saved");
       const actions=document.createElement("div");actions.className="library-actions";
       const open=document.createElement("button");open.className="btn";open.textContent="Open";open.onclick=async()=>{closeLibrary();await selectBook(book.id)};
-      const read=document.createElement("button");read.className="btn";read.textContent="Read";read.onclick=async()=>{closeLibrary();await selectBook(book.id);openReader()};
+      const read=document.createElement("button");read.className="btn";read.textContent=progress?"Continue":"Read";read.onclick=async()=>{closeLibrary();await selectBook(book.id);openReader()};
       const fav=document.createElement("button");fav.className="btn";fav.textContent=state.favorites.has(book.id)?"♥":"♡";fav.title="Favorite";fav.onclick=()=>toggleFavorite(book.id);
       actions.append(open,read,fav);tile.append(cover,title,meta,actions);panel.appendChild(tile)
     })
@@ -923,7 +944,8 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
     if (!await requireSession()) return;
     buildReaderPages();
     if (!state.readerPages.length) { toast("Add some photos before opening Reading Mode."); return; }
-    state.readerIndex = 0;
+    const saved=state.readingProgress.get(state.currentBookId);
+    state.readerIndex = saved ? Math.max(0, Math.min(saved.page_index||0, state.readerPages.length-1)) : 0;
     state.readerZoom = 1;
     resetReaderPan();
     await loadBookmarks();
@@ -974,6 +996,7 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
     $("readerNext").disabled = state.readerPages.length < 2;
     updateReaderZoomLabel();
     updateReaderBookmark();
+    if(state.readerMode==="private") saveReadingProgress();
     document.querySelectorAll(".toc-item").forEach((el, i) => el.classList.toggle("active", i === state.readerIndex));
   }
 
@@ -1775,6 +1798,7 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
     if (!session?.user) return false;
     try {
       await loadBooks();
+      await loadReadingProgress();
       await loadFavorites();
       await loadPhotos();
       await loadAllBookmarks();
