@@ -194,7 +194,7 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
 <header class="topbar"><div class="brand"><div class="brand-mark">B</div><div class="book-switcher"><select id="bookSelect" aria-label="Select current book"></select><button class="btn icon" id="newBookButton" title="Create a new book" aria-label="Create a new book">＋</button></div><div><div class="brand-title">Digital Book</div><div class="brand-meta" id="syncStatus"><span class="status-dot"></span>Cloud synced</div></div></div>
 <div class="actions"><div class="account" id="accountEmail"></div><div class="toolbar-group"><button class="btn" id="profileButton" title="Profile">👤 Profile</button><button class="btn" id="authButton" title="Log in or log out">Log in</button></div><div class="toolbar-group" aria-label="Navigation"><button class="btn" id="discoverButton" title="Discover books">⌕</button><button class="btn" id="libraryButton" title="My Library">▦</button><button class="btn" id="favoritesButton" title="Favorite books">♥</button><button class="btn" id="bookmarksButton" title="Saved bookmarks">🔖</button><button class="btn" id="readButton" title="Read current book">📖</button></div><div class="toolbar-group"><div class="book-menu"><button class="btn" id="bookMenuButton" aria-haspopup="menu">Book ▾</button><div id="bookMenuPanel" class="book-menu-panel hidden"><button class="menu-item" id="editBookButton">✎ <span>Edit title & details</span></button><button class="menu-item" id="coverButton">▣ <span>Add / change cover</span></button><button class="menu-item" id="visibilityButton">◉ <span>Publish</span></button><button class="menu-item danger" id="deleteBookButton">⌫ <span>Delete this book</span></button></div></div><button class="btn" id="themeButton" title="Light / dark mode">☼ <span>Theme</span></button></div><button class="btn primary" id="headerUpload">＋ Add pages</button><input id="coverInput" type="file" accept="image/*" class="hidden"></div></header>
 <main>
-<section class="discover" id="discoverSection"><div class="discover-head"><div><div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:800;margin-bottom:10px">Discover</div><h1 class="discover-title">Find your next useful book.</h1><p class="discover-subtitle">Explore books shared by the community. Search by title, author, or description, then open anything that looks useful.</p></div><div class="search-wrap"><span class="search-icon">⌕</span><input id="publicSearch" type="search" placeholder="Search books, authors, topics…" autocomplete="off" aria-label="Search public books"></div></div><div id="publicLibrary" class="public-grid"></div></section>
+<section class="discover" id="discoverSection"><div class="discover-head"><div><div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:800;margin-bottom:10px">Discover</div><h1 class="discover-title">Find your next useful book.</h1><p class="discover-subtitle">Explore books shared by the community. Search by title, author, or description, then open anything that looks useful.</p></div><div class="search-wrap"><span class="search-icon">⌕</span><input id="publicSearch" type="search" placeholder="Search books, authors, topics…" autocomplete="off" aria-label="Search public books"></div></div><div style="display:flex;justify-content:flex-end;margin:-8px 0 16px"><select id="publicSort" class="btn" aria-label="Sort discovered books"><option value="recent">Newest first</option><option value="title">Title A–Z</option><option value="author">Author A–Z</option></select></div><div id="publicLibrary" class="public-grid"></div></section>
 <section class="hero"><div id="coverArea"></div><div><div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:800;margin-bottom:9px">Your current book</div><h1 id="bookTitle" contenteditable="true" spellcheck="false" aria-label="Book title">My Book</h1><p id="countText">Your pages, organized into chapters.</p><div class="chapter-controls"><div class="chapter-select-wrap"><span class="chapter-select-label">Chapter</span><select id="sectionSelect" aria-label="Filter by chapter"></select></div><button class="btn" id="newSectionButton">＋ Chapter</button><button class="btn" id="manageSectionsButton">Manage chapters</button><button class="btn" id="bookDetailsButton">Details</button></div></div></section>
 <section class="upload-zone" id="dropZone"><div class="upload-icon">＋</div><div><h2>Add pages to your book</h2><p>Drop images here or choose multiple files. New pages are appended in order.</p></div><button class="btn primary" id="chooseButton">Choose pages</button><input id="fileInput" type="file" accept="image/*" multiple class="hidden"></section>
 <section class="book"><div id="loading" class="loading hidden"><div class="spinner"></div>Loading your book…</div><div id="empty" class="empty hidden"><h2>Your book is empty.</h2><p>Add your first pages above. You can reorder, caption, assign chapters, download, or delete them anytime.</p></div><div id="bookGrid" class="book-grid"></div></section>
@@ -238,7 +238,7 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
       <div><h2 style="margin:0">My Books</h2><p style="margin:5px 0 0">Every book you create is saved to your account and can be reopened from any signed-in device.</p></div>
       <button class="btn icon" id="libraryClose" aria-label="Close">×</button>
     </div>
-    <div id="bookLibrary" class="book-library"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"><input id="librarySearch" type="search" placeholder="Search your books…" aria-label="Search your books" style="flex:1;min-width:220px;padding:11px 13px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);color:var(--text)"><select id="librarySort" class="btn" aria-label="Sort your books"><option value="recent">Recently created</option><option value="title">Title A–Z</option><option value="published">Published first</option></select></div><div id="bookLibrary" class="book-library"></div>
   </div>
 </div>
 
@@ -336,7 +336,7 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
     publicBook: null,
     publicSections: [],
     publicPhotos: [],
-    profileName: "", detailPhotoId: null, readerMode: "private", favorites: new Set(), bookmarks: [], savedBookmarks: [], savedTab: "favorites", theme: localStorage.getItem("digital-book:theme") || "dark", readerDirection: 0, readerZoom: 1, readerPanX: 0, readerPanY: 0, readerPointers: new Map(), readerDrag: null, readerPinchDistance: 0
+    profileName: "", detailPhotoId: null, readerMode: "private", favorites: new Set(), bookmarks: [], savedBookmarks: [], savedTab: "favorites", librarySearch: "", librarySort: "recent", publicSort: "recent", theme: localStorage.getItem("digital-book:theme") || "dark", readerDirection: 0, readerZoom: 1, readerPanX: 0, readerPanY: 0, readerPointers: new Map(), readerDrag: null, readerPinchDistance: 0
   };
 
   const $ = (id) => document.getElementById(id);
@@ -464,7 +464,29 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
   }
   async function openLibrary(){if(!await requireSession())return;renderBookLibrary();$("libraryModal").classList.remove("hidden")}
   function closeLibrary(){$("libraryModal").classList.add("hidden")}
-  function renderBookLibrary(){const panel=$("bookLibrary");if(!panel)return;panel.innerHTML="";state.books.forEach(book=>{const tile=document.createElement("div");tile.className="book-tile";const cover=document.createElement("div");if(book.cover_path){const img=document.createElement("img");img.className="book-tile-cover";img.alt=book.title+" cover";supabaseClient.storage.from("photos").createSignedUrl(book.cover_path,3600).then(x=>{if(!x.error)img.src=x.data.signedUrl});cover.appendChild(img)}else{cover.className="book-tile-empty";cover.textContent="No cover"}const title=document.createElement("div");title.className="book-tile-title";title.textContent=book.title;const meta=document.createElement("div");meta.className="book-tile-meta";meta.innerHTML=(book.is_public?'<span class="visibility-public">● Published</span>':'<span class="visibility-private">● Private</span>')+" · "+(book.id===state.currentBookId?"Open":"Saved");const actions=document.createElement("div");actions.className="library-actions";const open=document.createElement("button");open.className="btn";open.textContent="Open";open.onclick=async()=>{closeLibrary();await selectBook(book.id)};const read=document.createElement("button");read.className="btn";read.textContent="Read";read.onclick=async()=>{closeLibrary();await selectBook(book.id);openReader()};const fav=document.createElement("button");fav.className="btn";fav.textContent=state.favorites.has(book.id)?"♥":"♡";fav.title="Favorite";fav.onclick=()=>toggleFavorite(book.id);actions.append(open,read,fav);tile.append(cover,title,meta,actions);panel.appendChild(tile)})}
+  function renderBookLibrary(){
+    const panel=$("bookLibrary"); if(!panel)return;
+    const q=(state.librarySearch||"").trim().toLowerCase();
+    let books=state.books.filter(book=>!q || (book.title||"").toLowerCase().includes(q) || (book.author||"").toLowerCase().includes(q));
+    if(state.librarySort==="title") books.sort((a,b)=>(a.title||"").localeCompare(b.title||""));
+    if(state.librarySort==="published") books.sort((a,b)=>Number(b.is_public)-Number(a.is_public));
+    if(state.librarySort==="recent") books.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+    panel.innerHTML="";
+    if(!books.length){panel.innerHTML='<div class="discover-empty" style="grid-column:1/-1"><strong>No books match.</strong><div style="margin-top:7px">Try another title or clear the search.</div></div>';return;}
+    books.forEach(book=>{
+      const tile=document.createElement("div");tile.className="book-tile";
+      const cover=document.createElement("div");
+      if(book.cover_path){const img=document.createElement("img");img.className="book-tile-cover";img.alt=(book.title||"Book")+" cover";supabaseClient.storage.from("photos").createSignedUrl(book.cover_path,3600).then(x=>{if(!x.error)img.src=x.data.signedUrl});cover.appendChild(img)}
+      else{cover.className="book-tile-empty";cover.textContent="No cover"}
+      const title=document.createElement("div");title.className="book-tile-title";title.textContent=book.title||"Untitled";
+      const meta=document.createElement("div");meta.className="book-tile-meta";meta.textContent=(book.is_public?"Published":"Private")+" · "+(book.id===state.currentBookId?"Open":"Saved");
+      const actions=document.createElement("div");actions.className="library-actions";
+      const open=document.createElement("button");open.className="btn";open.textContent="Open";open.onclick=async()=>{closeLibrary();await selectBook(book.id)};
+      const read=document.createElement("button");read.className="btn";read.textContent="Read";read.onclick=async()=>{closeLibrary();await selectBook(book.id);openReader()};
+      const fav=document.createElement("button");fav.className="btn";fav.textContent=state.favorites.has(book.id)?"♥":"♡";fav.title="Favorite";fav.onclick=()=>toggleFavorite(book.id);
+      actions.append(open,read,fav);tile.append(cover,title,meta,actions);panel.appendChild(tile)
+    })
+  }
 
 
   async function loadPublicBooks(query=""){
@@ -519,38 +541,29 @@ main{width:min(1320px,100%);margin:0 0 0 var(--sidebar);padding:0 44px 100px}
   }
 
   function renderPublicLibrary(){
-    const panel=$("publicLibrary");
-    if(!panel)return;
+    const panel=$("publicLibrary"); if(!panel)return;
     panel.innerHTML="";
-    if(!state.publicBooks.length){
-      panel.innerHTML='<div class="discover-empty" style="grid-column:1/-1"><strong>No public books yet.</strong><div style="margin-top:7px">When someone publishes a book, it will appear here.</div></div>';
+    let books=[...state.publicBooks];
+    if(state.publicSort==="title") books.sort((a,b)=>(a.title||"").localeCompare(b.title||""));
+    if(state.publicSort==="author") books.sort((a,b)=>(a.author||"").localeCompare(b.author||""));
+    if(!books.length){
+      panel.innerHTML='<div class="discover-empty" style="grid-column:1/-1"><strong>No books found.</strong><div style="margin-top:7px">Try a different search or check back later.</div></div>';
       return;
     }
-
-    for(const book of state.publicBooks){
-      const card=document.createElement("article");
-      card.className="public-card";
+    for(const book of books){
+      const card=document.createElement("article"); card.className="public-card";
       card.innerHTML='<div class="public-cover-empty">B</div><div class="public-card-title"></div><div class="public-card-author"></div><div class="public-card-description"></div><div class="library-actions"><button class="btn public-read" type="button">Read</button><button class="btn public-favorite" type="button"></button></div>';
       card.querySelector(".public-card-title").textContent=book.title||"Untitled";
-      card.querySelector(".public-card-author").textContent=book.author?book.author:"Digital Book";
+      card.querySelector(".public-card-author").textContent=book.author||"Digital Book";
       card.querySelector(".public-card-description").textContent=book.description||"";
       card.querySelector(".public-read").onclick=()=>openPublicBook(book.id);
-      const fav=card.querySelector(".public-favorite");
-      fav.textContent=state.favorites.has(book.id)?"♥":"♡";
-      fav.title="Favorite";
-      fav.onclick=()=>toggleFavorite(book.id);
+      const fav=card.querySelector(".public-favorite"); fav.textContent=state.favorites.has(book.id)?"♥":"♡"; fav.title="Favorite"; fav.setAttribute("aria-label",state.favorites.has(book.id)?"Remove favorite":"Favorite book"); fav.onclick=()=>toggleFavorite(book.id);
       panel.appendChild(card);
-
       if(book.cover_path){
         supabaseClient.storage.from("photos").createSignedUrl(book.cover_path,3600).then(signed=>{
           if(signed.error||!signed.data?.signedUrl)return;
-          const placeholder=card.querySelector(".public-cover-empty");
-          if(!placeholder)return;
-          const img=document.createElement("img");
-          img.className="public-cover";
-          img.src=signed.data.signedUrl;
-          img.alt=(book.title||"Book")+" cover";
-          placeholder.replaceWith(img);
+          const placeholder=card.querySelector(".public-cover-empty"); if(!placeholder)return;
+          const img=document.createElement("img"); img.className="public-cover"; img.src=signed.data.signedUrl; img.alt=(book.title||"Book")+" cover"; placeholder.replaceWith(img);
         }).catch(error=>console.warn("Public cover load failed:",error));
       }
     }
@@ -2085,6 +2098,11 @@ $("favoritesButton").addEventListener("click",()=>openSaved("favorites"));$("boo
     byId("authSwitch")?.addEventListener("click",()=>{ const title=byId("authTitle")?.textContent||""; open(title==="Log in" ? "signup" : "login"); },{capture:true});
     window.__digitalBookAuthFallback=true;
   }
+
+  const publicSort=$("publicSort"); if(publicSort) publicSort.addEventListener("change",()=>{state.publicSort=publicSort.value;renderPublicLibrary()});
+  const librarySearch=$("librarySearch"); if(librarySearch) librarySearch.addEventListener("input",()=>{state.librarySearch=librarySearch.value;renderBookLibrary()});
+  const librarySort=$("librarySort"); if(librarySort) librarySort.addEventListener("change",()=>{state.librarySort=librarySort.value;renderBookLibrary()});
+
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",wireAuthFallback,{once:true}); else wireAuthFallback();
 })();
 </script>
